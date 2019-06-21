@@ -4,6 +4,7 @@
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:id="@+id/mainActivity"
               tools:context=".MapsActivity">
 
 
@@ -15,7 +16,8 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintVertical_bias="0.0"/>
 
     <LinearLayout
             android:layout_width="match_parent"
@@ -67,5 +69,18 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <Button
+            android:id="@+id/btn_cancelar"
+            android:layout_width="200dp"
+            android:visibility="invisible"
+            android:layout_height="40dp"
+            android:background="#F61D16"
+            android:text="Cancelar auto"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/map"
+            android:textColor="@android:color/white"
+            app:layout_constraintStart_toStartOf="@+id/map"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
