@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CiberTaxi</string>
+    <string name="title_activity_maps">CiberTaxi</string>
+    <string name="navTitulo">CiberTaxi</string>
+</resources>
