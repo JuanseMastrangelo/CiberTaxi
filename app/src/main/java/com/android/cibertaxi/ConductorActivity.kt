@@ -12,19 +12,17 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
-import android.os.Build
+import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.android.cibertaxi.Adapters.infoWindowsAdapter
 import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
@@ -35,17 +33,18 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_maps.*
+import ru.whalemare.sheetmenu.extension.marginTop
 import java.io.IOException
 
 class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
-    GoogleMap.OnMarkerDragListener, GoogleMap.InfoWindowAdapter {
+    GoogleMap.OnMarkerDragListener, GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
     // Google Maps
     private lateinit var mMap: GoogleMap
     private lateinit var marcadorConductor : Marker
     private var camara : Int = 0
+    private var conductor_Lat : Double = 0.0
+    private var conductor_Lon : Double = 0.0
 
 
     // Webservice
@@ -54,7 +53,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     // GeoLocalizacion
     private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
     private val INTERVAL: Long = 1000
-    private val FASTEST_INTERVAL: Long = 60000
+    private val FASTEST_INTERVAL: Long = 2000
     lateinit var mLastLocation: Location
     internal lateinit var mLocationRequest: LocationRequest
     private val REQUEST_PERMISSION_LOCATION = 10
@@ -122,18 +121,18 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     }
 
 
-    fun agregarMarcador(lat: Double,long: Double){
+    fun agregarMarcador(lat: Double,long: Double, title: String){
         val tag = LatLng(lat, long)
-        mMap.addMarker(MarkerOptions().position(tag).title("Tu ubicación").icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.person)))
-        mMap.setOnMarkerDragListener(this);
-        mMap.setInfoWindowAdapter(this);
-        mMap.setOnInfoWindowClickListener(MyOnInfoWindowClickListener);
+        mMap.addMarker(MarkerOptions().position(tag).title(title).icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.person)))
+        mMap.setOnMarkerDragListener(this)
+        mMap.setInfoWindowAdapter(this)
+        mMap.setOnInfoWindowClickListener(this);
 
     }
 
     fun crearMarcadoresPasajeros(){
         var url =
-            "http://eleccionesargentina.online/WebServices/acciones/peticionesViajes.php"
+            "http://eleccionesargentina.online/WebServices/acciones/peticionesViajes.php?idusuario=1"
 
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener { response ->
@@ -143,7 +142,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                 var i=0
                 while (i < json.length()){
                     var separador = json[i].toString().split("|")
-                    agregarMarcador(separador[0].toDouble(), separador[1].toDouble())
+                    agregarMarcador(separador[0].toDouble(), separador[1].toDouble(), response.getString("usuario"))
                     i++
                 }
 
@@ -219,6 +218,8 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     fun onLocationChanged(location: Location) {
         mLastLocation = location
         agregarMarcadorConductor(mLastLocation.latitude, mLastLocation.longitude)
+        conductor_Lat = mLastLocation.latitude
+        conductor_Lon = mLastLocation.longitude
     }
 
     private fun stoplocationUpdates() {
@@ -262,27 +263,50 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     // *************************************************
 
     override fun onMarkerDragStart(marker: Marker) {
-        marker.setTitle(marker.getPosition().toString())
         marker.showInfoWindow()
-        marker.setAlpha(0.5f)
     }
     override fun onMarkerDragEnd(marker: Marker) {
-        marker.setTitle(marker.getPosition().toString())
         marker.showInfoWindow()
-        marker.setAlpha(0.5f)
     }
     override fun onMarkerDrag(marker: Marker) {
         marker.setTitle(marker.getPosition().toString())
         marker.showInfoWindow()
-        marker.setAlpha(0.5f)
+    }
+    override fun onInfoWindowClick(marker: Marker){
+        Toast.makeText(this, "asas", Toast.LENGTH_LONG).show()
+
+        var valoresMarcador = marker.title.toString().split("|")
+
+        // WEBSERVICE
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/tomarViaje.php?" +
+                    "idusuario=" + valoresMarcador[0] +
+                    "&idconductor=3"
+
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener { response ->
+                Log.i("WebserviceViajeTomado","Respuesta:"+response)
+
+                if(response.getBoolean("status") == true){
+
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(conductor_Lat,conductor_Lon),14.0f))
+                    Toast.makeText(this, "Viaje tomado", Toast.LENGTH_LONG).show()
+                }else{
+                    Toast.makeText(this, "Ups! Parece que el viaje ya fué tomado", Toast.LENGTH_LONG).show()
+                }
+
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+
     }
     override fun getInfoWindow(marker: Marker): View? {
         return null
     }
     override fun getInfoContents(marker: Marker): View? {
+
         return prepareInfoView(marker)
     }
-
 
 
 
@@ -290,38 +314,33 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     fun prepareInfoView(marker: Marker): LinearLayout {
         var infoView = LinearLayout(this)
         var infoViewParams = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        infoView.setOrientation(LinearLayout.HORIZONTAL);
+            LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        infoView.setOrientation(LinearLayout.VERTICAL);
         infoView.setLayoutParams(infoViewParams)
+        var nombreUsuario = TextView(this)
+        var reputacion = TextView(this)
+        var btn_tomarViaje = Button(this)
 
-        var subInfoLat = TextView(this)
-        subInfoLat.setText("Lat: " + marker.getPosition().latitude)
+        // estilos
+        btn_tomarViaje.setText("TOMAR VIAJE")
+        btn_tomarViaje.setTextColor(this.getResources().getColor(R.color.white))
+        btn_tomarViaje.setBackgroundColor(this.getResources().getColor(R.color.LightBlue))
 
-        infoView.addView(subInfoLat)
+        var valoresMarcador = marker.title.toString().split("|")
+        nombreUsuario.setText("Nombre: " + valoresMarcador[1] + " #" + valoresMarcador[0])
+        reputacion.setText("Reputacion: "+valoresMarcador[2] + " estrellas")
+
+
+
+
+        // Agregamos los textview a la vista <LineaLayout> ~~infoView
+        infoView.addView(nombreUsuario)
+        infoView.addView(reputacion)
+        infoView.addView(btn_tomarViaje)
+        // retornamos la vista en forma de <LinearLayout> ~~infoView
         return infoView
     }
-    fun tomarViaje(){
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/tomarViaje.php"
 
-        val jsonObjectRequest = JsonObjectRequest(url,null,
-            Response.Listener { response ->
-                val json = response.getJSONArray("viajes_array")
-                Log.i("WebserviceConductor","Respuesta:"+json[0])
-
-                var i=0
-                while (i < json.length()){
-                    var separador = json[i].toString().split("|")
-                    agregarMarcador(separador[0].toDouble(), separador[1].toDouble())
-                    i++
-                }
-
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        queue.add(jsonObjectRequest)
-
-
-    }
 
 
     var MyOnInfoWindowClickListener = GoogleMap.OnInfoWindowClickListener{
