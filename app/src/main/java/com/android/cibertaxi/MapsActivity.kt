@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
@@ -66,6 +67,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private val REQUEST_PERMISSION_LOCATION = 10
     var geocodeMatches: List<Address>? = null
 
+    // SharedPreferences
+    val PREFS_FILENAME = "com.android.cibertaxi.prefs"
+    var prefs: SharedPreferences? = null
+
     @SuppressLint("WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,9 +80,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_maps)
         supportActionBar?.hide()
 
-        //val intent = Intent(this, ConductorActivity::class.java)
-        //startActivity(intent)
 
+        // SharedPreferences <Nos fijamos si la sesión esta iniciada, sino la reenviamos a iniciar_sesion.kt>
+        prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
+        if(prefs!!.getInt("iniciado", 0) == 0){ // Si la sesión no esta iniciada
+            val intent = Intent(this, iniciar_sesion::class.java)
+            startActivity(intent)
+        }
         // Google Maps
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
