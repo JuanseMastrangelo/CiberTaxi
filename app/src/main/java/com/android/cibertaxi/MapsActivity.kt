@@ -75,8 +75,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         setContentView(R.layout.activity_maps)
         supportActionBar?.hide()
 
-        val intent = Intent(this, ConductorActivity::class.java)
-        startActivity(intent)
+        //val intent = Intent(this, ConductorActivity::class.java)
+        //startActivity(intent)
 
         // Google Maps
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment

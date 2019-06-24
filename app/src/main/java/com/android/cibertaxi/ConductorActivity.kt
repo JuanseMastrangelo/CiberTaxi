@@ -46,6 +46,12 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     private var conductor_Lat : Double = 0.0
     private var conductor_Lon : Double = 0.0
 
+    lateinit var btn_tomarViaje: Button
+    private var cliente_Lat : Double = 0.0
+    private var cliente_Lon : Double = 0.0
+    private lateinit var marcadorCliente : Marker
+
+
 
     // Webservice
     lateinit var queue: RequestQueue
@@ -53,7 +59,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     // GeoLocalizacion
     private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
     private val INTERVAL: Long = 1000
-    private val FASTEST_INTERVAL: Long = 2000
+    private val FASTEST_INTERVAL: Long = 30000 // 1000 1 segundo
     lateinit var mLastLocation: Location
     internal lateinit var mLocationRequest: LocationRequest
     private val REQUEST_PERMISSION_LOCATION = 10
@@ -110,6 +116,13 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
             camara = 1
         }
         crearMarcadoresPasajeros()
+
+        marcadorCliente = mMap.addMarker(
+            MarkerOptions()
+                .position(LatLng(cliente_Lat, cliente_Lon))
+                .title("Ubicación del Cliente")
+                .icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.destination))
+        )
     }
     fun bitmapDescriptorFromVector(context: Context, vectorRestId:Int): BitmapDescriptor? {
         var vectorDrawable = ContextCompat.getDrawable(context, vectorRestId)
@@ -291,6 +304,19 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(conductor_Lat,conductor_Lon),14.0f))
                     Toast.makeText(this, "Viaje tomado", Toast.LENGTH_LONG).show()
+                    btn_tomarViaje.visibility = View.GONE
+
+                    cliente_Lat = marker.position.latitude
+                    cliente_Lon = marker.position.longitude
+                    marcadorCliente = mMap.addMarker(
+                        MarkerOptions()
+                            .position(LatLng(cliente_Lat, cliente_Lon))
+                            .title("Ubicación del Cliente")
+                            .icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.destination))
+                    )
+
+                    agregarMarcadorConductor(conductor_Lat, conductor_Lon)
+
                 }else{
                     Toast.makeText(this, "Ups! Parece que el viaje ya fué tomado", Toast.LENGTH_LONG).show()
                 }
@@ -319,7 +345,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
         infoView.setLayoutParams(infoViewParams)
         var nombreUsuario = TextView(this)
         var reputacion = TextView(this)
-        var btn_tomarViaje = Button(this)
+        btn_tomarViaje = Button(this)
 
         // estilos
         btn_tomarViaje.setText("TOMAR VIAJE")
