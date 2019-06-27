@@ -2,12 +2,12 @@
 <resources>
     <color name="colorPrimary">#F7CF14</color>
     <color name="colorPrimaryDark">#F7CF14</color>
-    <color name="colorAccent">#F7CF14</color>
+    <color name="colorAccent">#1A1A1A</color>
 
 
 
     <color name="LightBlue">#1495F7</color>
     <color name="white">#fff</color>
     <color name="black">#313131</color>
-    <color name="red">#EC3333</color>
+    <color name="red">#F61D16</color>
 </resources>
