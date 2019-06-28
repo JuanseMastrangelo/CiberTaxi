@@ -13,6 +13,8 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
+        <activity android:name=".Chat">
+        </activity>
         <activity android:name=".registro_sesion">
         </activity>
         <activity android:name=".iniciar_sesion">
@@ -26,8 +28,8 @@
 
         <activity
                 android:name=".MapsActivity"
-                android:screenOrientation="portrait"
-                android:label="@string/title_activity_maps">
+                android:label="@string/title_activity_maps"
+                android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

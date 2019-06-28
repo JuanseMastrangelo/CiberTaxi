@@ -11,8 +11,10 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
@@ -36,6 +38,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.tapadoo.alerter.Alerter
+import kotlinx.android.synthetic.main.activity_conductor.*
 import kotlinx.android.synthetic.main.activity_maps.*
 import java.io.IOException
 
@@ -86,6 +89,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             // Si la sesión no esta iniciada
             val intent = Intent(this, iniciar_sesion::class.java)
             startActivity(intent)
+            finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
         }else if(prefs!!.getString("puesto", "usuario") != "usuario"){
             // La sesion esta iniciada pero es de un conductor
             val intent = Intent(this, ConductorActivity::class.java)
@@ -161,6 +165,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
         validarPeticionVehiculo()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
+
+
 
     }
 
@@ -238,6 +244,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         queue.add(jsonObjectRequest)
 
     }
+
+
+
+
 
 
 

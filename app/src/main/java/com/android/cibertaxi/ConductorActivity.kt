@@ -13,6 +13,7 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.media.MediaPlayer
 import android.os.*
 import androidx.appcompat.app.AppCompatActivity
 import android.provider.Settings
@@ -53,6 +54,10 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     private var cliente_Lat : Double = 0.0
     private var cliente_Lon : Double = 0.0
     private lateinit var marcadorCliente : Marker
+
+
+    // Volumen de las notificaciones
+    var volumenNotificacion = 1
 
 
 
@@ -115,6 +120,26 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
         // WebService | Inicialización
         queue = Volley.newRequestQueue(this)
+
+
+        VerificarConductor() // Verifica si el conductor ya aceptó un viaje
+
+
+        btn_finViaje.setOnClickListener {  // Boton de finalizar viaje
+            finalizarViaje()
+        }
+
+        btn_chat.setOnClickListener { // Boton para abrir Chat
+            val intent = Intent(this, Chat::class.java)
+            startActivity(intent)
+        }
+
+
+        // Verificamos mensajes cada x tiempo
+        verificarMensajes()
+
+
+
 
 
     }
@@ -193,6 +218,109 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
     }
+
+
+    fun VerificarConductor(){
+        // Este algoritmo verifica si el conductor aceptó un viaje
+
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/validarConductor.php?" +
+                    "idusuario="+ idusuario
+
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+                // Validamos si el usuario ya pidió un vehiculo
+                if(response.getString("mensaje") == "false"){ // El conductor no aceptó ningún viaje
+                    ll_top_conductor.visibility = View.GONE // Si no hay viajes, hacemos invisible el LinearLayout
+                }
+                else{
+
+                    var arrayRespuesta = response.getJSONArray("viajes_array") // Llamamos el JSONArray que respondio la url
+                    var valoresMarcador = arrayRespuesta[0].toString().split("|") // Lo separamos para obtener los datos
+                    tv_nombreConductor.setText(""+ valoresMarcador[3]) // seteamos el TextView `tv_nombreConductor`
+                    tv_reputacionConductor.setText(""+ valoresMarcador[5]) // seteamos el TextView `tv_reputacionConductor`
+                    address(valoresMarcador[0].toDouble(), valoresMarcador[1].toDouble()) // Enviamos los datos de Latitud y Longitud a address() para saber la dirección fisica. Este método lo setea en el TextView origen
+                    ll_top_conductor.visibility = View.VISIBLE // Hacemos visible el LinearLayout
+                    // Creamos la bandera
+                    cliente_Lat = valoresMarcador[0].toDouble() // Guardamos los datos de Latitud de forma global
+                    cliente_Lon = valoresMarcador[1].toDouble() // Guardamos los datos de Longitud de forma global
+                    agregarMarcadorConductor(conductor_Lat, conductor_Lon) // Agregamos el marcador (bandera)
+
+                    Alerter.create(this@ConductorActivity) // Enviamos una Notificación
+                        .setTitle("Conductor")
+                        .setText("Alerta! Ya tienes un viaje")
+                        .enableSwipeToDismiss()
+                        .setBackgroundColorRes(R.color.red)
+                        .show()
+
+
+                }
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
+
+
+
+
+    fun finalizarViaje(){
+        // Este algoritmo finaliza el viaje
+
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/cancelarVehiculo.php?" +
+                    "idconductor="+ idusuario
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+                // Finalizamos viaje
+                if(response.getString("mensaje") == "true") {
+                    Alerter.create(this@ConductorActivity)
+                        .setTitle("Viaje Finalizado")
+                        .setText("El viaje fue finalizado con éxito")
+                        .enableSwipeToDismiss()
+                        .setBackgroundColorRes(R.color.green)
+                        .show()
+
+                }
+                VerificarConductor() // Escondemos el LinearLayout con datos del viaje
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+
+
+        mMapC.clear() // Limpiamos el mapa
+        enViaje =0 // Marcamos como auto disponible (muestra pasajeros para aceptar viajes)
+        tv_viajesDisponibles.setText("Viaje Finalizado") // seteamos el TextView `tv_viajesDisponibles`
+
+        cliente_Lat = 0.0 // Hacemos 0 el marcador cliente (bandera)
+        cliente_Lon = 0.0 // Hacemos 0 el marcador cliente (bandera)
+
+        enviarViajeFinalizado() // Enviamos los datos del viaje finalizado a una base de datos para controlar los viajes
+
+    }
+
+    fun enviarViajeFinalizado(){
+        // Este método envia a la base de datos la finalización del viaje para tener un conteo
+
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/viajeFinalizado.php?" +
+                    "idconductor="+ idusuario
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response -> },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -345,7 +473,40 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
         return infoView // retornamos la vista
     }
 
+    fun verificarMensajes(){
+        // Este algoritmo verifica si el conductor tiene mensajes sin leer
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/mensajesSinLeer.php?" +
+                    "idconductor="+ idusuario
 
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+                if(response.getBoolean("status") == true) {
+                    // Creamos una alerta indicando que tiene mensajes sin leer
+                    btn_chat.setText("Chat ("+response.getString("cantidad")+")")
+                    Alerter.create(this@ConductorActivity)
+                        .setTitle("Mensajes")
+                        .setText("Tienes mensajes sin leer: "+response.getString("cantidad"))
+                        .enableSwipeToDismiss()
+                        .setBackgroundColorRes(R.color.green)
+                        .show()
+
+                    // Reproducimos sonido
+                    var mp = MediaPlayer.create(this, R.raw.notificacion)
+                    mp.setVolume(volumenNotificacion.toFloat(),volumenNotificacion.toFloat())
+                    mp.start()
+
+                }
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+
+        var handler = Handler()
+        handler.postDelayed( {
+            verificarMensajes()
+        }, 10000) // Cada 10 segundos
+
+    }
 
 
 
