@@ -36,7 +36,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.tapadoo.alerter.Alerter
+import kotlinx.android.synthetic.main.activity_conductor.*
 import kotlinx.android.synthetic.main.activity_maps.*
+import kotlinx.android.synthetic.main.activity_maps.btn_chat
 import java.io.IOException
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -158,6 +160,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 Response.ErrorListener { error -> error.printStackTrace() })
             queue.add(jsonObjectRequest)
         }
+        btn_chat.setOnClickListener { // Boton para abrir Chat
+            val intent = Intent(this, Chat::class.java)
+            startActivity(intent)
+        }
 
 
 
@@ -205,11 +211,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     btn_cancelar.visibility = View.GONE
                     btn_pedirRemisse.visibility = View.VISIBLE
                     btn_relocalizacion.visibility = View.VISIBLE
+                    btn_chat.visibility = View.GONE
                 }
                 else{
                     btn_cancelar.visibility = View.VISIBLE
                     btn_pedirRemisse.visibility = View.GONE
                     btn_relocalizacion.visibility = View.GONE
+                    btn_chat.visibility = View.VISIBLE
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })

@@ -256,6 +256,10 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                         .show()
 
 
+                    mMapC.clear() // Limpiamos el mapa
+                    enViaje =1 // Marcamos como un auto en viaje
+                    tv_viajesDisponibles.setText("En viaje")
+
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
@@ -292,7 +296,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
         mMapC.clear() // Limpiamos el mapa
         enViaje =0 // Marcamos como auto disponible (muestra pasajeros para aceptar viajes)
-        tv_viajesDisponibles.setText("Viaje Finalizado") // seteamos el TextView `tv_viajesDisponibles`
+        tv_viajesDisponibles.setText("Espere..") // seteamos el TextView `tv_viajesDisponibles`
 
         cliente_Lat = 0.0 // Hacemos 0 el marcador cliente (bandera)
         cliente_Lon = 0.0 // Hacemos 0 el marcador cliente (bandera)
@@ -308,7 +312,9 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
             "http://eleccionesargentina.online/WebServices/acciones/viajeFinalizado.php?" +
                     "idconductor="+ idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
-            Response.Listener {response -> },
+            Response.Listener {response ->
+
+            },
             Response.ErrorListener { error -> error.printStackTrace() })
         queue.add(jsonObjectRequest)
     }
@@ -508,9 +514,25 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
         var handler = Handler()
         handler.postDelayed( {
-            verificarMensajes()
+            if(enViaje==1){ // Si el usuario aceptó un viaje
+                verificarMensajes()
+                enviarCoordenadas()
+            }
         }, 10000) // Cada 10 segundos
 
+    }
+
+    fun enviarCoordenadas(){
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/enviarCoordenadas.php?" +
+                    "idconductor="+ idusuario+
+                    "&lat="+ conductor_Lat+
+                    "&lon="+ conductor_Lon
+
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response -> },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
     }
 
 
