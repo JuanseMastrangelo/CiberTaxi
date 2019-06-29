@@ -232,6 +232,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                 // Validamos si el usuario ya pidió un vehiculo
                 if(response.getString("mensaje") == "false"){ // El conductor no aceptó ningún viaje
                     ll_top_conductor.visibility = View.GONE // Si no hay viajes, hacemos invisible el LinearLayout
+                    btn_chat.visibility = View.GONE
                 }
                 else{
 
@@ -241,6 +242,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                     tv_reputacionConductor.setText(""+ valoresMarcador[5]) // seteamos el TextView `tv_reputacionConductor`
                     address(valoresMarcador[0].toDouble(), valoresMarcador[1].toDouble()) // Enviamos los datos de Latitud y Longitud a address() para saber la dirección fisica. Este método lo setea en el TextView origen
                     ll_top_conductor.visibility = View.VISIBLE // Hacemos visible el LinearLayout
+                    btn_chat.visibility = View.VISIBLE
                     // Creamos la bandera
                     cliente_Lat = valoresMarcador[0].toDouble() // Guardamos los datos de Latitud de forma global
                     cliente_Lon = valoresMarcador[1].toDouble() // Guardamos los datos de Longitud de forma global
@@ -378,6 +380,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
                         // Mostramos los detalles en el navegador de abajo
+                        btn_chat.visibility = View.VISIBLE
                         ll_top_conductor.visibility = View.VISIBLE
                         tv_nombreConductor.setText(""+ valoresMarcador[1])
                         tv_reputacionConductor.setText(""+ valoresMarcador[2])
@@ -496,6 +499,8 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                     mp.setVolume(volumenNotificacion.toFloat(),volumenNotificacion.toFloat())
                     mp.start()
 
+                }else{
+                    btn_chat.setText("Chat") // Seteamos el textview en su forma Default
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })

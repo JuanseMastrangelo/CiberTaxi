@@ -5,6 +5,113 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         tools:context=".Chat">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:padding="10dp"
+            android:background="@color/colorPrimary"
+            android:id="@+id/constraintLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+        <ImageButton
+                android:id="@+id/ib_volver_chat"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/flecha_izquierda"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginLeft="16dp" android:layout_marginStart="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center" app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp" app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginEnd="9dp" android:layout_marginRight="9dp" android:id="@+id/linearLayout">
+            <TextView
+                    android:id="@+id/tv_nombreUsuario_chat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Usuario"
+                    android:textStyle="bold"
+                    android:textSize="21sp"
+                    android:textColor="@android:color/white"
+            />
+            <ProgressBar
+                    android:id="@+id/pb_chat"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_margin="10dp"
+                    android:visibility="gone"
+                    android:indeterminateTint="@color/grey"/>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@+id/constraintLayout2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
+            android:layout_marginTop="60dp"
+            android:layout_marginBottom="60dp">
+        <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_mensajes_chat"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"/>
+
+    </LinearLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:id="@+id/constraintLayout2">
+        <EditText
+                android:id="@+id/et_enviar_mensaje_chat"
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:hint="Escribe un mensaje"
+                android:padding="12dp"
+                android:background="@drawable/bg_chat"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent" android:layout_marginTop="8dp"
+                app:layout_constraintTop_toTopOf="parent" android:layout_marginRight="60dp"
+                android:layout_marginEnd="60dp"/>
+        <Button
+                android:id="@+id/btn_enviar_chat"
+                android:layout_width="50dp"
+                android:onClick="enviarMensaje"
+                android:layout_height="50dp"
+                android:text="S"
+                android:textStyle="bold"
+                android:textSize="22sp"
+                android:textColor="@android:color/white"
+                android:background="@drawable/bg_btnsend_chat"
+                android:layout_marginEnd="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginRight="8dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/et_enviar_mensaje_chat"
+                android:layout_marginStart="8dp" android:layout_marginLeft="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -11,10 +11,8 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
@@ -38,7 +36,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.tapadoo.alerter.Alerter
-import kotlinx.android.synthetic.main.activity_conductor.*
 import kotlinx.android.synthetic.main.activity_maps.*
 import java.io.IOException
 
@@ -120,7 +117,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         queue = Volley.newRequestQueue(this)
 
 
-
+        // Acciones de botones
         btn_cancelar.setOnClickListener {
             // Boton cancelar viaje
             cancelarVehiculo()
