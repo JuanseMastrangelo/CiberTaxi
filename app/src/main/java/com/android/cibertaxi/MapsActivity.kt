@@ -7,12 +7,17 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.location.LocationManager
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
@@ -20,6 +25,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 import com.android.volley.RequestQueue
 import com.android.volley.Response
@@ -32,9 +38,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.tapadoo.alerter.Alerter
 import kotlinx.android.synthetic.main.activity_conductor.*
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -46,6 +50,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     // Google Maps | variables globales
     private lateinit var mMap: GoogleMap
     private lateinit var marcadorUsuario : Marker
+    private lateinit var conductorMarker : Marker
     private var latitudUsuario: Double = 0.0
     private var longitudUsuario: Double = 0.0
 
@@ -59,6 +64,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // Datos del cliente logueado
     var idusuario = 0
+    var usuarioPidioAuto = 0
+
+
+    // Volumen de las notificaciones
+    var volumenNotificacion = 1
+
 
     // GeoLocalizacion | Variables globales
     private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
@@ -70,6 +81,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     var geocodeMatches: List<Address>? = null
 
 
+    // Extras
+    var marcadorConductorExistencia = 0
 
 
 
@@ -146,8 +159,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             val jsonObjectRequest = JsonObjectRequest(url,null,
                 Response.Listener {response ->
-                    Log.i("Webservice","Respuesta:"+response)
-
                     // Creamos un viaje
                     Alerter.create(this@MapsActivity)
                         .setTitle("Auto")
@@ -199,25 +210,50 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     fun validarPeticionVehiculo(){
         // Este algoritmo verifica si el usuario pidió un vehículo
 
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/validarPedidos.php?" +
-                    "idusuario="+ idusuario
-
+        var url = "http://eleccionesargentina.online/WebServices/acciones/validarPedidos.php?" + "idusuario="+ idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
-                Log.i("validarPeticionVehiculo","Respuesta:"+response)
                 // Validamos si el usuario ya pidió un vehiculo
-                if(response.getString("mensaje") == "false"){
+                if(response.getBoolean("status") == false){
+                    usuarioPidioAuto = 0
+                    // Si el usuario no pidió un auto todavía
                     btn_cancelar.visibility = View.GONE
                     btn_pedirRemisse.visibility = View.VISIBLE
                     btn_relocalizacion.visibility = View.VISIBLE
                     btn_chat.visibility = View.GONE
+                    tv_label_activityMaps.setText("El vehículo se enviará a:")
+                    tv_label_activityMaps.setTextColor(Color.parseColor("#313131"))
                 }
                 else{
-                    btn_cancelar.visibility = View.VISIBLE
+                    // El usuario pidio un auto ¿Ya tiene un conductor?
+                    usuarioPidioAuto = 1
                     btn_pedirRemisse.visibility = View.GONE
                     btn_relocalizacion.visibility = View.GONE
-                    btn_chat.visibility = View.VISIBLE
+                    tv_label_activityMaps.setText("El vehículo se enviará a:")
+                    tv_label_activityMaps.setTextColor(Color.parseColor("#313131"))
+                    if(response.getString("mensaje") == "0"){
+                        // Si no tiene conductor
+                        btn_cancelar.visibility = View.VISIBLE
+                        btn_chat.visibility = View.GONE
+
+                    }else{
+                        // Si tiene conductor
+                        tv_label_activityMaps.setText("Confirmado! Un automovil está yendo a esta ubicación, siguelo en el mapa: ")
+                        tv_label_activityMaps.setTextColor(Color.parseColor("#8BC34A"))
+                        btn_cancelar.visibility = View.GONE
+                        btn_chat.visibility = View.VISIBLE
+                        verificarMensajes() // verificamos si tenemos mensajes del conductor
+                        localizacionDeConductor(response.getString("mensaje")) // mostramos por donde anda el conductor (Pasamos el id del conductor como parametro)
+                    }
+                }
+
+                if(usuarioPidioAuto == 1){ // El usuario pidió un vehículo
+
+                    // Verificamos que si hay el conductor aceptó su viaje
+                    var handler = Handler()
+                    handler.postDelayed( {
+                        validarPeticionVehiculo()
+                    }, 10000) // Cada 10 segundos actualizamos
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
@@ -232,7 +268,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
-                Log.i("cancelarVehiculo","Respuesta:"+response)
                 // Validamos si el usuario ya pidió un remisse, hacemos visible el boton de cancelar
                 if(response.getString("mensaje") == "true") {
                     Alerter.create(this@MapsActivity)
@@ -258,6 +293,71 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
+    fun verificarMensajes() {
+        // Este algoritmo verifica si el conductor tiene mensajes sin leer
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/mensajesSinLeer.php?" +
+                    "idconductor=" + idusuario
+
+        val jsonObjectRequest = JsonObjectRequest(url, null,
+            Response.Listener { response ->
+                if (response.getBoolean("status") == true) {
+                    // Creamos una alerta indicando que tiene mensajes sin leer
+                    btn_chat.setText("Chat (" + response.getString("cantidad") + ")")
+                    Alerter.create(this@MapsActivity)
+                        .setTitle("Mensajes")
+                        .setText("Tienes mensajes sin leer: " + response.getString("cantidad"))
+                        .enableSwipeToDismiss()
+                        .setBackgroundColorRes(R.color.green)
+                        .show()
+
+                    // Reproducimos sonido
+                    var mp = MediaPlayer.create(this, R.raw.notificacion)
+                    mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
+                    mp.start()
+
+                } else {
+                    btn_chat.setText("Chat") // Seteamos el textview en su forma Default
+                }
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
+
+
+
+    fun localizacionDeConductor(idConductor: String){
+        // Este algoritmo muestra al usuario por donde anda el conductor (Se actualiza cada 10 segundos)
+
+
+        var url = "http://eleccionesargentina.online/WebServices/acciones/recibirCoordenadas.php?" +
+                    "idconductor=" + idConductor
+
+        val jsonObjectRequest = JsonObjectRequest(url, null,
+            Response.Listener { response ->
+                if (response.getBoolean("status") == true) {
+                    // Se reciben coordenas del conductor
+                    var latitudConductor = response.getString("lat").toDouble()
+                    var longitudConductor = response.getString("lon").toDouble()
+
+
+                    // Creamos el marcador y lo actualizamos
+                    if(marcadorConductorExistencia != 0){ // Si no existe un marcador nos dará un error
+                        conductorMarker.remove() // Limpiamos el viejo y creamos uno nuevo
+                    }else{
+                        marcadorConductorExistencia = 1 // Hacemos 1 a la variable para que se ejecute 1 vez
+                    }
+                    conductorMarker = mMap.addMarker(MarkerOptions().position(LatLng(latitudConductor, longitudConductor)).title("Conductor").icon(bitmapDescriptorFromVector(getApplicationContext(),R.drawable.taxi))) // Agregamos el marcador
+
+                } else {
+                    // Error, el conductor no esta enviando coordenadas
+                    Toast.makeText(this, "Error al recibir coordenadas del conductor", Toast.LENGTH_SHORT).show()
+                }
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
 
 
 
@@ -284,6 +384,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
+
+
+
+
+
+
+
+
+
+
+    fun bitmapDescriptorFromVector(context: Context, vectorRestId:Int): BitmapDescriptor? {
+        // Este algoritmo sirve para convertir un drawable a bitmap | Se usa para los iconos del mapa
+
+        var vectorDrawable = ContextCompat.getDrawable(context, vectorRestId)
+        vectorDrawable?.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight())
+        var bitmap = Bitmap.createBitmap(vectorDrawable!!.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888)
+        var canvas = Canvas(bitmap)
+        vectorDrawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
+    }
 
     /* ****************************************************************************************
                         GEOLOCALIZACION (NO TOCAR!!!!)
