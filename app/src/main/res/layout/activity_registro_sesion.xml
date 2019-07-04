@@ -6,7 +6,7 @@
         android:layout_height="match_parent"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:background="@color/colorPrimary"
-        tools:context=".registro_sesion">
+        tools:context="com.aplicacion.cibertaxi.registro_sesion">
 
     <ImageView
             android:id="@+id/iv_logo"

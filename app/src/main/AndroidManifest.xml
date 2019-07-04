@@ -13,13 +13,13 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
-        <activity android:name=".Chat">
+        <activity android:name="com.aplicacion.cibertaxi.Chat">
         </activity>
-        <activity android:name=".registro_sesion">
+        <activity android:name="com.aplicacion.cibertaxi.registro_sesion">
         </activity>
-        <activity android:name=".iniciar_sesion">
+        <activity android:name="com.aplicacion.cibertaxi.iniciar_sesion">
         </activity>
-        <activity android:name=".ConductorActivity">
+        <activity android:name="com.aplicacion.cibertaxi.ConductorActivity">
         </activity>
 
         <meta-data
@@ -27,7 +27,7 @@
                 android:value="@string/google_maps_key"/>
 
         <activity
-                android:name=".MapsActivity"
+                android:name="com.aplicacion.cibertaxi.MapsActivity"
                 android:label="@string/title_activity_maps"
                 android:screenOrientation="portrait">
             <intent-filter>
