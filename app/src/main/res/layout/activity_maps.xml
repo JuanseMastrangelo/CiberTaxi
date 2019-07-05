@@ -31,6 +31,21 @@
             app:layout_constraintTop_toTopOf="@+id/map"
             app:layout_constraintEnd_toEndOf="parent"
             android:gravity="center"/>
+
+    <Button
+            android:id="@+id/btn_usuario_u"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:text="Usuario"
+            android:textColor="@color/black"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_chat"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent"/>
+
     <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

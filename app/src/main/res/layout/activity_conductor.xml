@@ -21,32 +21,70 @@
             app:layout_constraintVertical_bias="0.0"/>
 
     <TextView
-            android:id="@+id/tv_viajesDisponibles"
+        android:id="@+id/tv_viajesDisponibles"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/left_viajesdisponibles"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+            android:id="@+id/tv_manejoAgencia"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:textStyle="bold"
             android:textSize="20sp"
             android:textColor="@color/black"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="0dp"
             android:background="@drawable/left_viajesdisponibles"
-            app:layout_constraintTop_toTopOf="@+id/map"
-            app:layout_constraintStart_toStartOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tv_viajesDisponibles"/>
+    <Button
+            android:id="@+id/btn_usuario"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textAllCaps="false"
+            android:text="Usuario"
+            android:textColor="@color/black"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_chat"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent"/>
 
 
 
     <Button
-            android:id="@+id/btn_chat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAllCaps="false"
-            android:text="Chat"
-            android:textColor="@android:color/white"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/right_chat"
-            app:layout_constraintTop_toTopOf="@+id/map"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:gravity="center"/>
+        android:id="@+id/btn_chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="Chat"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/right_chat"
+        app:layout_constraintTop_toTopOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center"/>
+
+    <Button
+        android:id="@+id/btn_baja"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="Inhabilitar"
+        android:textColor="@android:color/white"
+        android:background="@color/red"
+        android:gravity="center" app:layout_constraintEnd_toEndOf="@+id/map"
+        android:layout_marginTop="132dp"
+        app:layout_constraintTop_toBottomOf="@+id/btn_chat"/>
 
     <LinearLayout
             android:id="@+id/ll_top_conductor"

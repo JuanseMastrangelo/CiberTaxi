@@ -70,6 +70,8 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
     //variable para saber si esta en viaje
     var enViaje = 0
+    var habilitado = true
+    var manejoAgencia = true // variable que indica si los conductores asignan sus viajes Automaticamente o si la agencia lo hace
 
     // GeoLocalizacion | Variables globales
     private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
@@ -135,6 +137,21 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
             startActivity(intent)
         }
 
+        btn_baja.setOnClickListener { // Boton para darse de baja
+            if(habilitado){
+                inhabilitarMovil()
+            }else{
+                habilitado = true
+                btn_baja.setText("Deshabilitar")
+                btn_baja.setBackgroundColor(resources.getColor(R.color.red))
+            }
+
+        }
+
+        btn_usuario.setOnClickListener {
+            val intent = Intent(this, editarUsuario::class.java)
+            startActivity(intent)
+        }
 
         // Verificamos mensajes cada x tiempo
         verificarMensajes()
@@ -195,7 +212,8 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
             // LISTENER DE MAPA (click en infowindows para tomar viaje del usuario)
             mMapC.setOnMarkerDragListener(this)
             mMapC.setInfoWindowAdapter(this)
-            mMapC.setOnInfoWindowClickListener(this);
+            mMapC.setOnInfoWindowClickListener(this)
+
 
     }
 
@@ -246,10 +264,16 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                     address(valoresMarcador[0].toDouble(), valoresMarcador[1].toDouble()) // Enviamos los datos de Latitud y Longitud a address() para saber la dirección fisica. Este método lo setea en el TextView origen
                     ll_top_conductor.visibility = View.VISIBLE // Hacemos visible el LinearLayout
                     btn_chat.visibility = View.VISIBLE
+                    btn_baja.visibility = View.GONE // Deshabilitamos el boton de dar de baja
                     // Creamos la bandera
                     cliente_Lat = valoresMarcador[0].toDouble() // Guardamos los datos de Latitud de forma global
                     cliente_Lon = valoresMarcador[1].toDouble() // Guardamos los datos de Longitud de forma global
                     agregarMarcadorConductor(conductor_Lat, conductor_Lon) // Agregamos el marcador (bandera)
+
+                    // Reproducimos sonido
+                    var mp = MediaPlayer.create(this, R.raw.notificacion)
+                    mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
+                    mp.start()
 
                     Alerter.create(this@ConductorActivity) // Enviamos una Notificación
                         .setTitle("Conductor")
@@ -325,7 +349,21 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
 
+    fun inhabilitarMovil(){
+        // Este método deshabilita del mapa al conductor
 
+        var url =
+            "http://eleccionesargentina.online/WebServices/acciones/deshabilitarConductor.php?" +
+                    "idconductor="+ idusuario
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+                btn_baja.setText("Habilitar")
+                btn_baja.setBackgroundColor(resources.getColor(R.color.green))
+                habilitado = false
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
 
 
 
@@ -357,70 +395,79 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
         if(marker.title.toString() != "Tu"){
             // Si el conductor no clickea su propio icono ( SINO NOS DARÁ ERROR)
 
-
-            var valoresMarcador = marker.title.toString().split("|")  // Creamos un array con los datos almacenados en el title separados con `|`
-
-            var url = "http://eleccionesargentina.online/WebServices/acciones/tomarViaje.php?" + "idusuario=" + valoresMarcador[0] + "&idconductor="+ idusuario
-            val jsonObjectRequest = JsonObjectRequest(url,null,
-                Response.Listener { response ->
-                    if(response.getBoolean("status") == true){
-                        // Si el viaje es tomado con éxito =>
-                        mMapC.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(conductor_Lat,conductor_Lon),14.0f))
-
-                        Alerter.create(this@ConductorActivity)
-                            .setTitle("Conductor")
-                            .setText("El viaje fué tomado con éxito, dirigete al destino marcado con una bandera")
-                            .enableSwipeToDismiss()
-                            .setBackgroundColorRes(R.color.colorPrimaryDark)
-                            .show()
+            if(manejoAgencia == false) { // Comprobamos si la agencia esta manejando los viajes
 
 
-                        mMapC.clear() // Limpiamos el mapa
-                        enViaje =1 // Marcamos como un auto en viaje
-                        tv_viajesDisponibles.setText("En viaje")
+                var valoresMarcador = marker.title.toString()
+                    .split("|")  // Creamos un array con los datos almacenados en el title separados con `|`
+
+                var url =
+                    "http://eleccionesargentina.online/WebServices/acciones/tomarViaje.php?" + "idusuario=" + valoresMarcador[0] + "&idconductor=" + idusuario
+                val jsonObjectRequest = JsonObjectRequest(url, null,
+                    Response.Listener { response ->
+                        if (response.getBoolean("status") == true) {
+                            // Si el viaje es tomado con éxito =>
+                            mMapC.animateCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(conductor_Lat, conductor_Lon),
+                                    14.0f
+                                )
+                            )
+
+                            Alerter.create(this@ConductorActivity)
+                                .setTitle("Conductor")
+                                .setText("El viaje fué tomado con éxito, dirigete al destino marcado con una bandera")
+                                .enableSwipeToDismiss()
+                                .setBackgroundColorRes(R.color.colorPrimaryDark)
+                                .show()
 
 
-                        // Creamos la bandera
-                        cliente_Lat = marker.position.latitude
-                        cliente_Lon = marker.position.longitude
-                        agregarMarcadorConductor(conductor_Lat, conductor_Lon)
+                            mMapC.clear() // Limpiamos el mapa
+                            enViaje = 1 // Marcamos como un auto en viaje
+                            tv_viajesDisponibles.setText("En viaje")
 
 
+                            // Creamos la bandera
+                            cliente_Lat = marker.position.latitude
+                            cliente_Lon = marker.position.longitude
+                            agregarMarcadorConductor(conductor_Lat, conductor_Lon)
 
 
-                        // Mostramos los detalles en el navegador de abajo
-                        btn_chat.visibility = View.VISIBLE
-                        ll_top_conductor.visibility = View.VISIBLE
-                        tv_nombreConductor.setText(""+ valoresMarcador[1])
-                        tv_reputacionConductor.setText(""+ valoresMarcador[2])
-                        address(marker.position.latitude, marker.position.longitude)
-                        //****
+                            // Mostramos los detalles en el navegador de abajo
+                            btn_chat.visibility = View.VISIBLE
+                            ll_top_conductor.visibility = View.VISIBLE
+                            tv_nombreConductor.setText("" + valoresMarcador[1])
+                            tv_reputacionConductor.setText("" + valoresMarcador[2])
+                            address(marker.position.latitude, marker.position.longitude)
+                            //****
 
 
-                        // Creamos la ruta a partir de la api de google
-                        var origen = LatLng(conductor_Lat, conductor_Lon)
-                        var destino = LatLng(cliente_Lat, cliente_Lon)
-                        val URL = getDirectionURL(origen,destino)
-                        GetDirection(URL).execute() // Mostramos la ruta en el mapa con un AsyncTask
+                            // Creamos la ruta a partir de la api de google
+                            var origen = LatLng(conductor_Lat, conductor_Lon)
+                            var destino = LatLng(cliente_Lat, cliente_Lon)
+                            val URL = getDirectionURL(origen, destino)
+                            GetDirection(URL).execute() // Mostramos la ruta en el mapa con un AsyncTask
 
+                        } else {
 
-
-
-
-
-
-                    }else{
-
-                        Alerter.create(this@ConductorActivity)
-                            .setTitle("Conductor")
-                            .setText("Ups! Parece que el usuario canceló el viaje o ya fue tomado por otro conductor")
-                            .enableSwipeToDismiss()
-                            .setBackgroundColorRes(R.color.red)
-                            .show()
-                    }
-                },
-                Response.ErrorListener { error -> error.printStackTrace() })
-            queue.add(jsonObjectRequest)
+                            Alerter.create(this@ConductorActivity)
+                                .setTitle("Conductor")
+                                .setText("Ups! Parece que el usuario canceló el viaje o ya fue tomado por otro conductor")
+                                .enableSwipeToDismiss()
+                                .setBackgroundColorRes(R.color.red)
+                                .show()
+                        }
+                    },
+                    Response.ErrorListener { error -> error.printStackTrace() })
+                queue.add(jsonObjectRequest)
+            }else{
+                Alerter.create(this@ConductorActivity)
+                    .setTitle("Conductor")
+                    .setText("La agencia esta asignando los viajes")
+                    .enableSwipeToDismiss()
+                    .setBackgroundColorRes(R.color.red)
+                    .show()
+            }
         }
     }
 
@@ -487,55 +534,84 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
     fun verificarMensajes(){
         // Este algoritmo verifica si el conductor tiene mensajes sin leer
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/mensajesSinLeer.php?" +
-                    "idconductor="+ idusuario
+        if(enViaje==1) { // Si tiene un viaje vinculado
+            var url =
+                "http://eleccionesargentina.online/WebServices/acciones/mensajesSinLeer.php?" +
+                        "idconductor=" + idusuario
 
-        val jsonObjectRequest = JsonObjectRequest(url,null,
-            Response.Listener {response ->
-                if(response.getBoolean("status") == true) {
-                    // Creamos una alerta indicando que tiene mensajes sin leer
-                    btn_chat.setText("Chat ("+response.getString("cantidad")+")")
-                    Alerter.create(this@ConductorActivity)
-                        .setTitle("Mensajes")
-                        .setText("Tienes mensajes sin leer: "+response.getString("cantidad"))
-                        .enableSwipeToDismiss()
-                        .setBackgroundColorRes(R.color.green)
-                        .show()
+            val jsonObjectRequest = JsonObjectRequest(url, null,
+                Response.Listener { response ->
+                    if (response.getBoolean("status") == true) {
+                        // Creamos una alerta indicando que tiene mensajes sin leer
+                        btn_chat.setText("Chat (" + response.getString("cantidad") + ")")
+                        Alerter.create(this@ConductorActivity)
+                            .setTitle("Mensajes")
+                            .setText("Tienes mensajes sin leer: " + response.getString("cantidad"))
+                            .enableSwipeToDismiss()
+                            .setBackgroundColorRes(R.color.green)
+                            .show()
 
-                    // Reproducimos sonido
-                    var mp = MediaPlayer.create(this, R.raw.notificacion)
-                    mp.setVolume(volumenNotificacion.toFloat(),volumenNotificacion.toFloat())
-                    mp.start()
+                        // Reproducimos sonido
+                        var mp = MediaPlayer.create(this, R.raw.notificacion)
+                        mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
+                        mp.start()
 
-                }else{
-                    btn_chat.setText("Chat") // Seteamos el textview en su forma Default
-                }
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        queue.add(jsonObjectRequest)
+                    } else {
+                        btn_chat.setText("Chat") // Seteamos el textview en su forma Default
+                    }
+                },
+                Response.ErrorListener { error -> error.printStackTrace() })
+            queue.add(jsonObjectRequest)
+        }
         enviarCoordenadas() // Enviar coordenas para panel Admin
-
+        if(enViaje != 1){ // El conductor no tiene un viaje
+            VerificarConductor() // Verificamos si se le asignó un viaje remotamente
+            verificarmanejoAgencia() // Verificamos si se le asignó un viaje remotamente
+        }
         var handler = Handler()
         handler.postDelayed( {
-            if(enViaje==1){ // Si el usuario aceptó un viaje
-                verificarMensajes()
-            }
+            verificarMensajes()
         }, 10000) // Cada 10 segundos
 
     }
 
     fun enviarCoordenadas(){
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/enviarCoordenadas.php?" +
-                    "idconductor="+ idusuario+
-                    "&lat="+ conductor_Lat+
-                    "&lon="+ conductor_Lon
+        if(habilitado){
+            var url =
+                "http://eleccionesargentina.online/WebServices/acciones/enviarCoordenadas.php?" +
+                        "idconductor="+ idusuario+
+                        "&lat="+ conductor_Lat+
+                        "&lon="+ conductor_Lon
 
-        val jsonObjectRequest = JsonObjectRequest(url,null,
-            Response.Listener {response -> },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        queue.add(jsonObjectRequest)
+            val jsonObjectRequest = JsonObjectRequest(url,null,
+                Response.Listener {response -> },
+                Response.ErrorListener { error -> error.printStackTrace() })
+            queue.add(jsonObjectRequest)
+        }
+
+    }
+
+
+    fun verificarmanejoAgencia(){
+        if(habilitado){
+            var url =
+                "http://eleccionesargentina.online/WebServices/acciones/verificarManejoAgencia.php"
+
+            val jsonObjectRequest = JsonObjectRequest(url,null,
+                Response.Listener {response ->
+                    if(response.getBoolean("status") == true) { // La agencia maneja los conductores
+                        manejoAgencia = true
+                        tv_manejoAgencia.setText("Manual")
+                    }
+                    else {
+                        manejoAgencia = false
+                        tv_manejoAgencia.setText("Auto")
+                    }
+                },
+                Response.ErrorListener { error -> error.printStackTrace() })
+            queue.add(jsonObjectRequest)
+        }
+
     }
 
 

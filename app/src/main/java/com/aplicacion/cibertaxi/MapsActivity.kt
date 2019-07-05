@@ -178,6 +178,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             startActivity(intent)
         }
 
+        btn_usuario_u.setOnClickListener {
+            val intent = Intent(this, editarUsuario::class.java)
+            startActivity(intent)
+        }
+
 
 
         validarPeticionVehiculo()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
