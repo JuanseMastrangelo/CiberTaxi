@@ -48,6 +48,7 @@ class registro_sesion : AppCompatActivity() {
         btn_segundaAccionReg.setOnClickListener {
             val intent = Intent(this, iniciar_sesion::class.java)
             startActivity(intent)
+            finish()
         }
 
     }

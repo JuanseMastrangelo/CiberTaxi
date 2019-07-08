@@ -180,20 +180,21 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                 .title("Tu")
                 .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.taxi))
         )
-
-        if(camara == 0){
+        if(lat != 0.0 && camara == 0){
             mMapC.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat,long),14.0f))// Enviamos a la camara hacia esa ubicación con un zoom de 14.0
             camara = 1 // Hacemos camara = 1 para que no se mueva y el conductor pueda mover el mapa
         }
 
         if(enViaje == 0)crearMarcadoresPasajeros() // Creamos los marcadores de los usuarios que estan pidiendo un auto
 
-        marcadorCliente = mMapC.addMarker( // Este marcador es una BANDERA, se coloca cuando tomamos un viaje para saber a donde dirigirnos
-            MarkerOptions()
-                .position(LatLng(cliente_Lat, cliente_Lon))
-                .title("Destino")
-                .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination))
-        )
+        marcadorCliente =
+            mMapC.addMarker( // Este marcador es una BANDERA, se coloca cuando tomamos un viaje para saber a donde dirigirnos
+                MarkerOptions()
+                    .position(LatLng(cliente_Lat, cliente_Lon))
+                    .title("Destino")
+                    .icon(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.destination))
+            )
+
     }
 
 
@@ -220,26 +221,37 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
     fun crearMarcadoresPasajeros(){
         // Este algoritmo toma todos los usuarios que están pidiendo viajes y los envia a `agregarMarcador` para ser creados
 
-        var url = "http://eleccionesargentina.online/WebServices/acciones/peticionesViajes.php"
-        val jsonObjectRequest = JsonObjectRequest(url,null,
-            Response.Listener { response ->
-                if(response.getBoolean("status")){// Verificamos que existen viajes disponibles
-                    val json = response.getJSONArray("viajes_array") // Tomamos la cadena json con los datos
-                    var i=0 // inicializamos i en 0
-                    tv_viajesDisponibles.setText(json.length().toString() + " disponibles") // Mostramos total los viajes disponibles
-                    while (i < json.length()){ // Este algoritmo crea un while con el tamaño del json que traemos de la base de datos con los datos de los usuarios que están pidiendo un viaje
-                        var separador = json[i].toString().split("|") // Separamos el json por `|` y creamos un array para manejarlos
-                        agregarMarcador(separador[0].toDouble(), separador[1].toDouble(), separador[2]+"|"+separador[3]+"|"+separador[5]) // Pasamos los parametros lat,lon y title; En title pasamos parametros de id,nombre y reputación para tomarlo más facil después con `market.title`
-                        i++ // aumentamos i para tomar la proxima cadena
+        if(manejoAgencia == false){ // Si la agencia no esta manejando los viajes
+
+
+
+            var url = "http://eleccionesargentina.online/WebServices/acciones/peticionesViajes.php"
+            val jsonObjectRequest = JsonObjectRequest(url,null,
+                Response.Listener { response ->
+                    if(response.getBoolean("status")){// Verificamos que existen viajes disponibles
+                        val json = response.getJSONArray("viajes_array") // Tomamos la cadena json con los datos
+                        var i=0 // inicializamos i en 0
+                        tv_viajesDisponibles.setText(json.length().toString() + " disponibles") // Mostramos total los viajes disponibles
+                        while (i < json.length()){ // Este algoritmo crea un while con el tamaño del json que traemos de la base de datos con los datos de los usuarios que están pidiendo un viaje
+                            var separador = json[i].toString().split("|") // Separamos el json por `|` y creamos un array para manejarlos
+                            agregarMarcador(separador[0].toDouble(), separador[1].toDouble(), separador[2]+"|"+separador[3]+"|"+separador[5]) // Pasamos los parametros lat,lon y title; En title pasamos parametros de id,nombre y reputación para tomarlo más facil después con `market.title`
+                            i++ // aumentamos i para tomar la proxima cadena
+                        }
                     }
-                }
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        queue.add(jsonObjectRequest)
+                },
+                Response.ErrorListener { error -> error.printStackTrace() })
+            queue.add(jsonObjectRequest)
 
-
+        }
     }
 
+    fun mostrarRuta(){
+        // Creamos la ruta a partir de la api de google
+        var origen = LatLng(conductor_Lat, conductor_Lon)
+        var destino = LatLng(cliente_Lat, cliente_Lon)
+        val URL = getDirectionURL(origen, destino)
+        GetDirection(URL).execute() // Mostramos la ruta en el mapa con un AsyncTask
+    }
 
     fun VerificarConductor(){
         // Este algoritmo verifica si el conductor aceptó un viaje
@@ -266,26 +278,32 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                     btn_chat.visibility = View.VISIBLE
                     btn_baja.visibility = View.GONE // Deshabilitamos el boton de dar de baja
                     // Creamos la bandera
+                    mMapC.clear() // Limpiamos el mapa
                     cliente_Lat = valoresMarcador[0].toDouble() // Guardamos los datos de Latitud de forma global
                     cliente_Lon = valoresMarcador[1].toDouble() // Guardamos los datos de Longitud de forma global
                     agregarMarcadorConductor(conductor_Lat, conductor_Lon) // Agregamos el marcador (bandera)
 
-                    // Reproducimos sonido
-                    var mp = MediaPlayer.create(this, R.raw.notificacion)
-                    mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
-                    mp.start()
 
-                    Alerter.create(this@ConductorActivity) // Enviamos una Notificación
-                        .setTitle("Conductor")
-                        .setText("Alerta! Ya tienes un viaje")
-                        .enableSwipeToDismiss()
-                        .setBackgroundColorRes(R.color.red)
-                        .show()
+                    if(enViaje != 1){
+                        // Reproducimos sonido
+                        var mp = MediaPlayer.create(this, R.raw.notificacion)
+                        mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
+                        mp.start()
+                            Alerter.create(this@ConductorActivity) // Enviamos una Notificación
+                                .setTitle("Conductor")
+                                .setText("Alerta! Ya tienes un viaje")
+                                .enableSwipeToDismiss()
+                                .setBackgroundColorRes(R.color.red)
+                                .show()
+                            tv_viajesDisponibles.setText("En viaje")
+                    }
 
 
-                    mMapC.clear() // Limpiamos el mapa
+
                     enViaje =1 // Marcamos como un auto en viaje
-                    tv_viajesDisponibles.setText("En viaje")
+
+
+
 
                 }
             },
@@ -299,6 +317,8 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
     fun finalizarViaje(){
         // Este algoritmo finaliza el viaje
+
+        enviarViajeFinalizado() // Enviamos los datos del viaje finalizado a una base de datos para controlar los viajes
 
         var url =
             "http://eleccionesargentina.online/WebServices/acciones/cancelarVehiculo.php?" +
@@ -323,12 +343,11 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
         mMapC.clear() // Limpiamos el mapa
         enViaje =0 // Marcamos como auto disponible (muestra pasajeros para aceptar viajes)
-        tv_viajesDisponibles.setText("Espere..") // seteamos el TextView `tv_viajesDisponibles`
+        tv_viajesDisponibles.setText("Buscando pasajeros..") // seteamos el TextView `tv_viajesDisponibles`
 
         cliente_Lat = 0.0 // Hacemos 0 el marcador cliente (bandera)
         cliente_Lon = 0.0 // Hacemos 0 el marcador cliente (bandera)
 
-        enviarViajeFinalizado() // Enviamos los datos del viaje finalizado a una base de datos para controlar los viajes
 
     }
 
@@ -337,7 +356,9 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
 
         var url =
             "http://eleccionesargentina.online/WebServices/acciones/viajeFinalizado.php?" +
-                    "idconductor="+ idusuario
+                    "idconductor="+ idusuario +
+                    "&lat="+ conductor_Lat +
+                    "&lon="+ conductor_Lon
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
 
@@ -442,11 +463,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
                             //****
 
 
-                            // Creamos la ruta a partir de la api de google
-                            var origen = LatLng(conductor_Lat, conductor_Lon)
-                            var destino = LatLng(cliente_Lat, cliente_Lon)
-                            val URL = getDirectionURL(origen, destino)
-                            GetDirection(URL).execute() // Mostramos la ruta en el mapa con un AsyncTask
+                            mostrarRuta() // Trazamos la ruta que debe realizar
 
                         } else {
 
@@ -571,7 +588,7 @@ class ConductorActivity : AppCompatActivity(), OnMapReadyCallback,
         var handler = Handler()
         handler.postDelayed( {
             verificarMensajes()
-        }, 10000) // Cada 10 segundos
+        }, 5000) // Cada 5 segundos
 
     }
 

@@ -20,6 +20,11 @@
         <activity android:name="com.aplicacion.cibertaxi.registro_sesion">
         </activity>
         <activity android:name="com.aplicacion.cibertaxi.iniciar_sesion">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
         </activity>
         <activity android:name="com.aplicacion.cibertaxi.ConductorActivity">
         </activity>
@@ -32,11 +37,6 @@
                 android:name="com.aplicacion.cibertaxi.MapsActivity"
                 android:label="@string/title_activity_maps"
                 android:screenOrientation="portrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
         </activity>
     </application>
 

@@ -3,6 +3,7 @@ package com.aplicacion.cibertaxi
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -22,6 +23,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.view.Window
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -40,6 +42,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.squareup.picasso.Picasso
 import com.tapadoo.alerter.Alerter
 import kotlinx.android.synthetic.main.activity_conductor.*
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -98,20 +101,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // SharedPreferences | Inicialización
         prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
         // Verificamos si existe una sesión iniciada, si no existe nos envia a iniciar_sesion.class
-        if(prefs!!.getInt("iniciado", 0) == 0){
-            // Si la sesión no esta iniciada
-            val intent = Intent(this, iniciar_sesion::class.java)
-            startActivity(intent)
-            finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
-        }else if(prefs!!.getString("puesto", "usuario") != "usuario"){
-            // La sesion esta iniciada pero es de un conductor
-            val intent = Intent(this, ConductorActivity::class.java)
-            startActivity(intent)
-            finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
-        }else{
-            // El usuario logueado es un cliente, guardamos los datos en variables globales
-            idusuario = prefs!!.getInt("idusuario", 0) // ID usuario
-        }
+        idusuario = prefs!!.getInt("idusuario", 0)
 
 
         // Google Maps | Inicialización
@@ -188,6 +178,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         validarPeticionVehiculo()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
 
 
+        abrirPublicidad()
 
     }
 
@@ -260,7 +251,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     var handler = Handler()
                     handler.postDelayed( {
                         validarPeticionVehiculo()
-                    }, 10000) // Cada 10 segundos actualizamos
+                    }, 5000) // Cada 5 segundos actualizamos
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
@@ -369,7 +360,40 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
 
+    fun abrirPublicidad(){
+        // Crea un popup con publicidad
+        var dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setCancelable(false)
+        dialog.setContentView(R.layout.custom_dialog_publicidad)
 
+        var btn_dialog_cerrar = dialog.findViewById<Button>(R.id.btn_dialog_cerrar)
+        var iv_dialog = dialog.findViewById<ImageView>(R.id.iv_dialog)
+        btn_dialog_cerrar.setOnClickListener {
+            dialog.dismiss()
+        }
+
+
+
+        var url = "http://eleccionesargentina.online/WebServices/acciones/recibirPublicidad.php"
+
+        val jsonObjectRequest = JsonObjectRequest(url, null,
+            Response.Listener { response ->
+                Picasso
+                    .with(this)
+                    .load(response.getString("url"))
+                    .into(iv_dialog)
+                btn_dialog_cerrar.visibility = View.VISIBLE
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+
+
+
+        dialog.show()
+
+
+    }
 
 
 

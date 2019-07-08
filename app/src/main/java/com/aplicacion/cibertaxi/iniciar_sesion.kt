@@ -37,6 +37,21 @@ class iniciar_sesion : AppCompatActivity() {
         prefs = this.getSharedPreferences(PREFS_FILENAME, 0)
 
 
+        // Verificamos si existe una sesión iniciada
+        if(prefs!!.getInt("iniciado", 0) == 1){
+            // Si la sesión está iniciada
+            if(prefs!!.getString("puesto", "usuario") == "usuario"){
+                val intent = Intent(this, MapsActivity::class.java)
+                startActivity(intent)
+                finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
+            }else{
+                val intent = Intent(this, ConductorActivity::class.java)
+                startActivity(intent)
+                finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
+            }
+        }
+
+
         // Webservice
         queue = Volley.newRequestQueue(this)
 
@@ -66,9 +81,13 @@ class iniciar_sesion : AppCompatActivity() {
         if(puesto == "usuario"){ // Si el puesto del usuario que inició es 'USUARIO' =>
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
+
+            finish()
         }else { // Si el puesto del usuario que inició es 'CONDUCTOR' =>
             val intent = Intent(this, ConductorActivity::class.java)
             startActivity(intent)
+
+            finish()
         }
     }
 
