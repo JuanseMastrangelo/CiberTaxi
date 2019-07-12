@@ -1,9 +1,4 @@
-  ___    ____    ____    ____    ____    ____      __      _  _    ____ 
- / __)  (_  _)  (  _ \  ( ___)  (  _ \  (_  _)    /__\    ( \/ )  (_  _)
-( (__    _)(_    ) _ <   )__)    )   /    )(     /(__)\    )  (    _)(_ 
- \___)  (____)  (____/  (____)  (_)\_)   (__)   (__)(__)  (_/\_)  (____)
-
-
+# C I B E R T A X I
 App de Mapa para pedir remisses o Taxis<br>
 # Documentación y Servicios
 En la carpeta Webservices se encuentra la documentación, screenshots y archivos PHP documentado para la utilización de la aplicación. En el documento 'documentacion.txt' se puede encontrar información de la aplicación, requerimientos y pasos a seguir para la instalación.
