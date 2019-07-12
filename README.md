@@ -3,14 +3,14 @@ ANDROID - App de Mapa para pedir remisses o Taxis<br>
 # Documentación y Servicios
 En la carpeta Webservices se encuentra la documentación, screenshots y archivos PHP documentado para la utilización de la aplicación. En el documento 'documentacion.txt' se puede encontrar información de la aplicación, requerimientos y pasos a seguir para la instalación.
 
-<br>
+<br/>
 # Información
 La aplicación funciona en todos los dispositivos android (desde la API 15, 100% de los dispositivos). Se requiere permisos de Internet y GPS.
-<br>
+<br/>
 La aplicación cuenta con una interfaz para el usuario y una para el conductor, cada una orientada a facilitar su trabajo dentro de la app.
 La aplicación tiene dos opciones para asignar viajes, el conductor puede tomar viajes por cuenta propia o si existe una agencia o central, esta los asignará. Esta opcion se puede cambiar desde un switch en la web.
 Web: La app cuenta con un mapa web para manejar los viajes de forma manual (agencia), desde aquí se pueden observar los taxis o remisses en tiempo real y su estado (ocupado=rojo, parado y desocupado=gris, movimiento y desocupado=amarillo, fuera de servicio=desaparece del mapa). Foto de la web en el apartado 'Screenshots'
-<br>
+<br/>
 # Screenshots
 <div align="center">
         <img width="25%" src="https://github.com/JuanseMastrangelo/CiberTaxi/blob/master/Screenshots/Screenshot_20190623-211536.png"</img>
