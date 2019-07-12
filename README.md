@@ -11,6 +11,13 @@ La aplicación cuenta con una interfaz para el usuario y una para el conductor, 
 La aplicación tiene dos opciones para asignar viajes, el conductor puede tomar viajes por cuenta propia o si existe una agencia o central, esta los asignará. Esta opcion se puede cambiar desde un switch en la web.
 Web: La app cuenta con un mapa web para manejar los viajes de forma manual (agencia), desde aquí se pueden observar los taxis o remisses en tiempo real y su estado (ocupado=rojo, parado y desocupado=gris, movimiento y desocupado=amarillo, fuera de servicio=desaparece del mapa). Foto de la web en el apartado 'Screenshots'
 <br/>
+# Screenshots
+<div align="center">
+        <img width="25%" src="https://github.com/JuanseMastrangelo/CiberTaxi/blob/master/Screenshots/Screenshot_20190623-211536.png"</img>
+        <img height="0" width="8px">
+        <img width="25%" src="https://github.com/JuanseMastrangelo/CiberTaxi/blob/master/Screenshots/Screenshot_20190623-211925.png"</img>
+        
+</div>
 
 # Descargar DEMO
 <a href="https://play.google.com/store/apps/details?id=com.aplicacion.cibertaxi"><img src="https://simplematters.zendesk.com/hc/en-us/article_attachments/202572497/Google-Play-Transparent-border.png"</img></a>
