@@ -16,7 +16,8 @@ Web: La app cuenta con un mapa web para manejar los viajes de forma manual (agen
         <img width="25%" src="https://github.com/JuanseMastrangelo/CiberTaxi/blob/master/Screenshots/Screenshot_20190623-211536.png"</img>
         <img height="0" width="8px">
         <img width="25%" src="https://github.com/JuanseMastrangelo/CiberTaxi/blob/master/Screenshots/Screenshot_20190623-211925.png"</img>
-        
+        <img height="0" width="8px">
+        <img width="100%" src="https://github.com/JuanseMastrangelo/CiberTaxi/blob/master/Screenshots/6112384891224064.png"></img>
 </div>
 
 # Descargar DEMO
