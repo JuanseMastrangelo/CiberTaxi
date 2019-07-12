@@ -51,6 +51,7 @@ dependencies {
 
     // Notificaciones
     implementation 'com.tapadoo.android:alerter:4.0.2'
+    implementation 'com.irozon.alertview:alertview:1.0.1'
 
     // Ruta de un punto a otro
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
@@ -65,7 +66,6 @@ dependencies {
 
     // Sirve para que el apk builder no de error
     implementation 'com.android.support:multidex:1.0.3'
-
 
 
     testImplementation 'junit:junit:4.12'

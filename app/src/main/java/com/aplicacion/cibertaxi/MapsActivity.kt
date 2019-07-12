@@ -44,7 +44,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.squareup.picasso.Picasso
 import com.tapadoo.alerter.Alerter
-import kotlinx.android.synthetic.main.activity_conductor.*
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_maps.btn_chat
 import java.io.IOException

@@ -13,6 +13,8 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
+        <activity android:name="com.aplicacion.cibertaxi.vistaConductor">
+        </activity>
         <activity android:name="com.aplicacion.cibertaxi.editarUsuario">
         </activity>
         <activity android:name="com.aplicacion.cibertaxi.Chat">
@@ -25,8 +27,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-        </activity>
-        <activity android:name="com.aplicacion.cibertaxi.ConductorActivity">
         </activity>
 
         <meta-data

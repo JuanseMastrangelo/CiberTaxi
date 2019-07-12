@@ -68,7 +68,7 @@ class registro_sesion : AppCompatActivity() {
             val intent = Intent(this, MapsActivity::class.java)
             startActivity(intent)
         }else { // Si el puesto del usuario que inició es 'CONDUCTOR' =>
-            val intent = Intent(this, ConductorActivity::class.java)
+            val intent = Intent(this, vistaConductor::class.java)
             startActivity(intent)
         }
     }

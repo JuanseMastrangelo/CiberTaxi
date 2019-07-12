@@ -45,7 +45,7 @@ class iniciar_sesion : AppCompatActivity() {
                 startActivity(intent)
                 finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
             }else{
-                val intent = Intent(this, ConductorActivity::class.java)
+                val intent = Intent(this, vistaConductor::class.java)
                 startActivity(intent)
                 finish() // Rompemos la actividad para que el usuario no pueda volver atras y saltar el logueo
             }
@@ -84,7 +84,7 @@ class iniciar_sesion : AppCompatActivity() {
 
             finish()
         }else { // Si el puesto del usuario que inició es 'CONDUCTOR' =>
-            val intent = Intent(this, ConductorActivity::class.java)
+            val intent = Intent(this, vistaConductor::class.java)
             startActivity(intent)
 
             finish()
