@@ -21,5 +21,5 @@ Web: La app cuenta con un mapa web para manejar los viajes de forma manual (agen
 </div>
 
 # Descargar DEMO
-<a href="https://play.google.com/store/apps/details?id=com.aplicacion.cibertaxi"><img src="https://simplematters.zendesk.com/hc/en-us/article_attachments/202572497/Google-Play-Transparent-border.png"></img></a>
+<a href="https://play.google.com/store/apps/details?id=com.aplicacion.cibertaxi"><img width="10%" src="https://simplematters.zendesk.com/hc/en-us/article_attachments/202572497/Google-Play-Transparent-border.png"></img></a>
 
