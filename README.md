@@ -1,4 +1,4 @@
-# C I B E R T A X I
+# C I B E R T A X I - A P L I C A C I Ó N    A N D R O I D
 App de Mapa para pedir remisses o Taxis<br>
 # Documentación y Servicios
 En la carpeta Webservices se encuentra la documentación, screenshots y archivos PHP documentado para la utilización de la aplicación. En el documento 'documentacion.txt' se puede encontrar información de la aplicación, requerimientos y pasos a seguir para la instalación.
