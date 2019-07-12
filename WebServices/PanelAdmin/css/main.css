@@ -1,0 +1,121 @@
+*,body {padding:0;margin: 0;font-family: 'PT Sans', sans-serif;}
+li {list-style: none;}
+a {text-decoration: none;color: black;}
+textarea:focus, input:focus{outline: none;}
+
+
+/* RightMenu */
+.rightMenu {height: 100%;background-color: #121925;width: 25%;position: fixed;top:0;right:0;color:#44546c;z-index: 1000}
+
+	/* listaConductores */
+	.listaConductores {width: 100%;height: 60%;overflow-y: scroll;overflow-x: hidden;box-shadow: 5px 5px 10px rgba(50, 50, 50, 0.3);}
+	.listaConductores p {font-size: 15px;padding: 10px 20px;font-weight: bold;}
+	.listaConductores p i{color:#F34927;}
+	#conductores {width: 100%;}
+	#conductores tr {height: 50px;color: white;cursor: pointer;}
+	#conductores tr:nth-child(even){background-color: #0F151F;}
+	#conductores tr:hover > #conductoresNum span{background-color: #F34927;}
+	#conductoresNum {width: 30%text-align:center;}
+	#conductoresNum span{background-color: #0B101A;border-radius: 3px;padding: 5px 10px;margin-left: 5px;}
+
+
+	/* informacionViaje */
+	.informacionViaje {width: 100%;background: #121925;height: 100%;border-top: 3px solid #F34927;}
+	.informacionViaje li {padding: 10px;background-color: #121925;color:white;border-top: 2px solid #0F151F;}
+	.informacionViaje li span{color:#F34927;}
+	.informacionViaje li span input{width: 60%;padding: 5px 10px;margin-left: 10px;border-radius: 5px;border: none;font-size: 20px;color: #F34927;font-weight: bold}
+	.informacionViaje li button{background:#F34927;color: white;border: none;box-shadow: 5px 5px 10px rgba(50, 50, 50, 0.3);border-radius: 5px;padding: 5px 10px;cursor: pointer;opacity: 0.7;}
+	.informacionViaje li button:hover{opacity: 1;}
+
+
+
+
+
+
+/* Scrollbars */
+#scrollbarEstilo::-webkit-scrollbar-track {-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);border-radius: 10px;background-color: #0B101A;}
+#scrollbarEstilo::-webkit-scrollbar {width: 12px;background-color: #0B101A;}
+#scrollbarEstilo::-webkit-scrollbar-thumb {border-radius: 10px;-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);background-color: #44546c;}
+
+
+
+/*************************************************
+
+	L O G I N - S T Y L E 
+
+*************************************************/
+.container-lgn {background-image: url("../imagenes/loginBG.jpg");height: 100%;width: 100%;background-position: center;background-repeat: no-repeat;background-size: cover;}
+.form-lgn {width: 50%;height: auto;position: relative;background: white;border-radius: 0px 0px 10px 10px;box-shadow: 5px 5px 10px rgba(50, 50, 50, 0.5);text-align: center;border: 1px solid #F34927;border-top: 0px;}
+.form-lgn p{color: #0F151F;font-size: 20px;padding-top: 20px;}
+.form-lgn input {padding: 5px 10px;color: #44546c;width: 40%;margin: 10px auto;text-align: left;margin-bottom: 20px;}
+.form-lgn button {border:none;background: #F34927;color:white;padding: 5px 10px;cursor: pointer;opacity: 0.8}
+.form-lgn button:hover {opacity: 1;}
+
+
+
+
+/*************************************************
+
+	E X T R A S
+
+*************************************************/
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  float:right;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
