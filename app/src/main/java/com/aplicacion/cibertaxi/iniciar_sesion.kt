@@ -19,6 +19,8 @@ import kotlinx.android.synthetic.main.activity_maps.*
 
 class iniciar_sesion : AppCompatActivity() {
 
+    val uri = R.string.uri
+
     // SharedPreferences
     val PREFS_FILENAME = "com.aplicacion.cibertaxi.prefs"
     var prefs: SharedPreferences? = null
@@ -97,8 +99,7 @@ class iniciar_sesion : AppCompatActivity() {
          var dialog: ProgressDialog
          dialog = ProgressDialog.show(this, "", "Cargando...", true)  // Cartel de cargando
 
-        var url =
-            "http://eleccionesargentina.online/WebServices/sesion/abrirSesion.php?" +
+        var url = uri.toString()+"sesion/abrirSesion.php?" +
                     "email="+et_email.text.trim()+
                     "&pass="+et_pass.text
 

@@ -48,6 +48,8 @@ import kotlinx.android.synthetic.main.activity_vista_conductor.*
 class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerDragListener , GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
+    val uri = R.string.uri
+
     // Google Maps | variables globales
     private lateinit var mMapC: GoogleMap
     private lateinit var marcadorConductor : Marker
@@ -149,8 +151,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         }
 
         btn_usuario.setOnClickListener {
-            val intent = Intent(this, editarUsuario::class.java)
-            startActivity(intent)
+            configuracion()
         }
 
         btn_crearViaje.setOnClickListener {
@@ -170,6 +171,23 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         mMapC.setOnInfoWindowClickListener(this)
     }
 
+    fun configuracion(){
+        val alert = AlertView("Configuración de usuario", "Seleccione una opción:", AlertStyle.DIALOG)
+        alert.addAction(AlertAction("Cuenta", AlertActionStyle.DEFAULT, { action ->
+            val intent = Intent(this, editarUsuario::class.java)
+            startActivity(intent)
+        }))
+        alert.addAction(AlertAction("Cerrar Sesión", AlertActionStyle.NEGATIVE, { action ->
+            val editor = prefs!!.edit()
+            editor.remove("iniciado")
+            editor.apply() // Aplicamos
+            val intent = Intent(this, iniciar_sesion::class.java)
+            startActivity(intent)
+            finish()
+        }))
+        alert.addAction(AlertAction("Salir", AlertActionStyle.DEFAULT, { action -> }))
+        alert.show(this)
+    }
 
 
 
@@ -203,7 +221,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     {// Este algoritmo toma todos los usuarios que están pidiendo viajes y los envia a `agregarMarcador` para ser creados
 
         if(manejoAgencia == false){ // Si la agencia no esta manejando los viajes
-            var url = "http://eleccionesargentina.online/WebServices/acciones/peticionesViajes.php"
+            var url = uri.toString()+"acciones/peticionesViajes.php"
             val jsonObjectRequest = JsonObjectRequest(url,null,
                 Response.Listener { response ->
                     if(response.getBoolean("status")){// Verificamos que existen viajes disponibles
@@ -247,7 +265,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun verificarConductor()
     {// Este algoritmo verifica si el conductor aceptó un viaje
 
-        var url = "http://eleccionesargentina.online/WebServices/acciones/validarConductor.php?" + "idusuario="+ idusuario
+        var url = uri.toString()+"acciones/validarConductor.php?" + "idusuario="+ idusuario
 
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
@@ -273,12 +291,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
                         var mp = MediaPlayer.create(this, R.raw.notificacion)
                         mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
                         mp.start()
-                        Alerter.create(this@vistaConductor) // Enviamos una Notificación
-                            .setTitle("Conductor")
-                            .setText("Alerta! Ya tienes un viaje")
-                            .enableSwipeToDismiss()
-                            .setBackgroundColorRes(R.color.red)
-                            .show()
+                        crearAlerta("Conductor", "Alerta! Ya tienes un viaje", R.color.red)
                         tv_viajesDisponibles.setText("En viaje")
                     }
 
@@ -311,8 +324,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun verificarMensajes()
     {// Este algoritmo verifica si el conductor tiene mensajes sin leer
         if(enViaje==1) { // Si tiene un viaje vinculado
-            var url =
-                "http://eleccionesargentina.online/WebServices/acciones/mensajesSinLeer.php?" +
+            var url = uri.toString()+"acciones/mensajesSinLeer.php?" +
                         "idconductor=" + idusuario
 
             val jsonObjectRequest = JsonObjectRequest(url, null,
@@ -364,7 +376,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun enviarCoordenadas(){
         if(habilitado)
         { // Si el conductor puede recibir viajes
-            var url = "http://eleccionesargentina.online/WebServices/acciones/enviarCoordenadas.php?" + "idconductor="+ idusuario+ "&lat="+ conductor_Lat+ "&lon="+ conductor_Lon
+            var url = uri.toString()+"acciones/enviarCoordenadas.php?" + "idconductor="+ idusuario+ "&lat="+ conductor_Lat+ "&lon="+ conductor_Lon
             val jsonObjectRequest = JsonObjectRequest(url,null, Response.Listener {response -> }, Response.ErrorListener { error -> error.printStackTrace() })
             queue.add(jsonObjectRequest)
         }
@@ -374,7 +386,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     { // Esta funcion verifica si la agencia asigna los viajes o si se realiza manualmente
         if(habilitado)
         { // Si el conductor puede recibir viajes
-            var url = "http://eleccionesargentina.online/WebServices/acciones/verificarManejoAgencia.php"
+            var url = uri.toString()+"acciones/verificarManejoAgencia.php"
             val jsonObjectRequest = JsonObjectRequest(url,null,
                 Response.Listener {response ->
                     if(response.getBoolean("status") == true)
@@ -411,7 +423,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     { // Este algoritmo finaliza el viaje
 
         enviarViajeFinalizado(mensaje) // Enviamos los datos del viaje finalizado a una base de datos para controlar los viajes
-        var url ="http://eleccionesargentina.online/WebServices/acciones/cancelarVehiculo.php?idconductor="+ idusuario
+        var url = uri.toString()+"acciones/cancelarVehiculo.php?idconductor="+ idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Finalizamos viaje
@@ -433,8 +445,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun enviarViajeFinalizado(mensaje:String)
     { // Este método envia a la base de datos la finalización del viaje para tener un conteo
 
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/viajeFinalizado.php?" +
+        var url = uri.toString()+"acciones/viajeFinalizado.php?" +
                     "idconductor="+ idusuario +
                     "&lat="+ conductor_Lat +
                     "&lon="+ conductor_Lon+
@@ -447,7 +458,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun inhabilitarMovil()
     {// Este método deshabilita del mapa al conductor
 
-        var url = "http://eleccionesargentina.online/WebServices/acciones/deshabilitarConductor.php?idconductor="+ idusuario
+        var url = uri.toString()+"acciones/deshabilitarConductor.php?idconductor="+ idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 btn_baja.setText("Fuera de servicio")
@@ -459,7 +470,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
 
     fun crearViaje()
     { // Esta función crea un nuevo viaje (por ejemplo cuando se cruza un cliente en la vía pública)
-        var url = "http://eleccionesargentina.online/WebServices/acciones/crearViajeConductor.php?" +
+        var url = uri.toString()+"acciones/crearViajeConductor.php?" +
                 "idconductor="+ idusuario+
                 "&lat="+ conductor_Lat+
                 "&lon="+ conductor_Lon
@@ -599,7 +610,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
             if(manejoAgencia == false)
             { // Comprobamos si la agencia esta manejando los viajes
                 var valoresMarcador = marker.title.toString().split("|")  // Creamos un array con los datos almacenados en el title separados con `|`
-                var url = "http://eleccionesargentina.online/WebServices/acciones/tomarViaje.php?" + "idusuario=" + valoresMarcador[0] + "&idconductor=" + idusuario
+                var url = uri.toString()+"acciones/tomarViaje.php?" + "idusuario=" + valoresMarcador[0] + "&idconductor=" + idusuario
                 val jsonObjectRequest = JsonObjectRequest(url, null,
                     Response.Listener { response ->
                         if (response.getBoolean("status") == true)

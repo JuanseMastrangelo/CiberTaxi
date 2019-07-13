@@ -42,6 +42,10 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.irozon.alertview.AlertActionStyle
+import com.irozon.alertview.AlertStyle
+import com.irozon.alertview.AlertView
+import com.irozon.alertview.objects.AlertAction
 import com.squareup.picasso.Picasso
 import com.tapadoo.alerter.Alerter
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -49,6 +53,8 @@ import kotlinx.android.synthetic.main.activity_maps.btn_chat
 import java.io.IOException
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+
+    val uri = R.string.uri
 
     // Google Maps | variables globales
     private lateinit var mMap: GoogleMap
@@ -142,14 +148,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         btn_pedirRemisse.setOnClickListener {
             // Boton pedir viaje
-            var url =
-                "http://eleccionesargentina.online/WebServices/acciones/crearViaje.php?" +
+            var url = uri.toString()+"acciones/crearViaje.php?" +
                         "idusuario=" + idusuario +
                         "&lat="+latitudUsuario+
                         "&lon="+longitudUsuario
 
             val jsonObjectRequest = JsonObjectRequest(url,null,
                 Response.Listener {response ->
+
                     // Creamos un viaje
                     Alerter.create(this@MapsActivity)
                         .setTitle("Auto")
@@ -168,8 +174,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         btn_usuario_u.setOnClickListener {
-            val intent = Intent(this, editarUsuario::class.java)
-            startActivity(intent)
+            configuracion()
         }
 
 
@@ -186,6 +191,31 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         // Este algoritmo se inicia una vez que el mapa está listo
         mMap = googleMap
+    }
+
+
+    fun configuracion(){
+        val alert = AlertView("Configuración de usuario", "Seleccione una opción:", AlertStyle.DIALOG)
+        alert.addAction(AlertAction("Cuenta", AlertActionStyle.DEFAULT, { action ->
+            val intent = Intent(this, editarUsuario::class.java)
+            startActivity(intent)
+        }))
+        alert.addAction(AlertAction("Historial", AlertActionStyle.DEFAULT, { action ->
+            Toast.makeText(this, "Historial de viajes", Toast.LENGTH_SHORT).show()
+        }))
+        alert.addAction(AlertAction("Crear rutina", AlertActionStyle.DEFAULT, { action ->
+            Toast.makeText(this, "Rutinas", Toast.LENGTH_SHORT).show()
+        }))
+        alert.addAction(AlertAction("Cerrar Sesión", AlertActionStyle.NEGATIVE, { action ->
+            val editor = prefs!!.edit()
+            editor.remove("iniciado")
+            editor.apply() // Aplicamos
+            val intent = Intent(this, iniciar_sesion::class.java)
+            startActivity(intent)
+            finish()
+        }))
+        alert.addAction(AlertAction("Salir", AlertActionStyle.DEFAULT, { action -> }))
+        alert.show(this)
     }
 
 
@@ -207,7 +237,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     fun validarPeticionVehiculo(){
         // Este algoritmo verifica si el usuario pidió un vehículo
 
-        var url = "http://eleccionesargentina.online/WebServices/acciones/validarPedidos.php?" + "idusuario="+ idusuario
+        var url = uri.toString()+"acciones/validarPedidos.php?" + "idusuario="+ idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Validamos si el usuario ya pidió un vehiculo
@@ -259,8 +289,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     fun cancelarVehiculo(){
         // Algoritmo para cancelar vehículo
 
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/cancelarVehiculo.php?" +
+        var url = uri.toString()+"acciones/cancelarVehiculo.php?" +
                     "idusuario="+ idusuario
 
         val jsonObjectRequest = JsonObjectRequest(url,null,
@@ -292,8 +321,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     fun verificarMensajes() {
         // Este algoritmo verifica si el conductor tiene mensajes sin leer
-        var url =
-            "http://eleccionesargentina.online/WebServices/acciones/mensajesSinLeer.php?" +
+        var url = uri.toString()+"acciones/mensajesSinLeer.php?" +
                     "idconductor=" + idusuario
 
         val jsonObjectRequest = JsonObjectRequest(url, null,
@@ -328,7 +356,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // Este algoritmo muestra al usuario por donde anda el conductor (Se actualiza cada 10 segundos)
 
 
-        var url = "http://eleccionesargentina.online/WebServices/acciones/recibirCoordenadas.php?" +
+        var url = uri.toString()+"acciones/recibirCoordenadas.php?" +
                     "idconductor=" + idConductor
 
         val jsonObjectRequest = JsonObjectRequest(url, null,
@@ -374,7 +402,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
-        var url = "http://eleccionesargentina.online/WebServices/acciones/recibirPublicidad.php"
+        var url = uri.toString()+"acciones/recibirPublicidad.php"
 
         val jsonObjectRequest = JsonObjectRequest(url, null,
             Response.Listener { response ->

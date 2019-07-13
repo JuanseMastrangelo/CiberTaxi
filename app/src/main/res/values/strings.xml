@@ -3,4 +3,7 @@
     <string name="title_activity_maps">CiberTaxi</string>
     <string name="navTitulo">CiberTaxi</string>
 
+
+    <string name="uri">http://eleccionesargentina.online/WebServices/</string>
+
 </resources>
