@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.activity_registro_sesion.*
 
 class registro_sesion : AppCompatActivity() {
 
-    val uri = R.string.uri
+    val uri = "http://eleccionesargentina.online/WebServices/"
 
     // SharedPreferences
     val PREFS_FILENAME = "com.aplicacion.cibertaxi.prefs"
@@ -81,7 +81,7 @@ class registro_sesion : AppCompatActivity() {
         var dialog: ProgressDialog
         dialog = ProgressDialog.show(this, "", "Cargando...", true)   // Cartel de cargando
 
-        var url = uri.toString()+"sesion/registrarSesion.php?" +
+        var url = uri+"sesion/registrarSesion.php?" +
                     "email="+et_emailReg.text.trim()+
                     "&pass="+et_passReg.text+
                     "&nombre="+et_nombreReg.text.toString().trim().replace(" ","-")
@@ -109,7 +109,11 @@ class registro_sesion : AppCompatActivity() {
                 }
 
             },
-            Response.ErrorListener { error -> error.printStackTrace() })
+            Response.ErrorListener {
+                    error -> error.printStackTrace()
+                    Toast.makeText(this, "Reintentando", Toast.LENGTH_SHORT).show()
+                    verificarSesion() // Si hay error intentamos nuevamente
+            })
         queue.add(jsonObjectRequest)
 
     }

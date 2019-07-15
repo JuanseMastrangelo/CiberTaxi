@@ -25,7 +25,7 @@ import kotlinx.android.synthetic.main.activity_chat.*
 
 class Chat : AppCompatActivity() {
 
-    val uri = R.string.uri
+    val uri = "http://eleccionesargentina.online/WebServices/"
 
     // WebService | Iniciamos el objeto
     lateinit var queue: RequestQueue
@@ -86,7 +86,7 @@ class Chat : AppCompatActivity() {
 
         var resultados_array = ArrayList<Mensaje>()
 
-        var url = uri.toString()+"acciones/peticionesChat.php?" +
+        var url = uri+"acciones/peticionesChat.php?" +
                 "idusuario=" + idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener { response ->
@@ -135,7 +135,7 @@ class Chat : AppCompatActivity() {
 
     fun mensajeVisto(){ // Marca todos los mensajes del usuario como visto
 
-        var url = uri.toString()+"acciones/marcarVisto.php?" +
+        var url = uri+"acciones/marcarVisto.php?" +
                 "idusuario=" + idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener { response -> },
@@ -151,8 +151,7 @@ class Chat : AppCompatActivity() {
         if(textoMensaje.toString() != ""){ // Si el mensaje no es un vacio =>
 
             var pb_chat = findViewById<ProgressBar>(R.id.pb_chat)
-            pb_chat.visibility = View.VISIBLE
-            var url = uri.toString()+"acciones/enviarMensaje.php?" +
+            var url = uri+"acciones/enviarMensaje.php?" +
                     "idusuario=" + idusuario +
                     "&tipo=" + puesto +
                     "&mensaje=" + et_enviar_mensaje_chat.text // Mensaje

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_marginTop="10dp"
+              android:layout_height="match_parent">
+
+
+    <TextView
+            android:id="@+id/tv_historial_fecha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Martes 28 de Agosto 2019"
+            android:padding="10dp"
+            android:textSize="15sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+    />
+
+    <TextView
+            android:id="@+id/tv_historial_direccion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Don Bosco 1800 hasta Malvinas 2800"
+            android:padding="10dp"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+    />
+
+    <TextView
+            android:id="@+id/tv_historial_usuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Conductor: 12"
+            android:padding="0dp"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+    />
+
+    <TextView
+            android:id="@+id/tv_historial_estado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Exito"
+            android:padding="0dp"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+    />
+
+    <Button
+            android:id="@+id/btn_nuevoViajeOrigen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:textAllCaps="false"
+            android:text="Llamar auto a esta dirección"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_btnsend_chat"
+    />
+
+    <Button
+            android:id="@+id/btn_nuevoViajeDestino"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:textAllCaps="false"
+            android:text="Llamar auto a esta dirección"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_btnsend_chat_blue"
+    />
+
+</LinearLayout>

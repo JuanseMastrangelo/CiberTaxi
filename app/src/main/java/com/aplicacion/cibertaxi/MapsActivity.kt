@@ -54,7 +54,7 @@ import java.io.IOException
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    val uri = R.string.uri
+    val uri = "http://eleccionesargentina.online/WebServices/"
 
     // Google Maps | variables globales
     private lateinit var mMap: GoogleMap
@@ -92,8 +92,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // Extras
     var marcadorConductorExistencia = 0
-
-
 
     @SuppressLint("WrongViewCast")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,26 +145,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         btn_pedirRemisse.setOnClickListener {
-            // Boton pedir viaje
-            var url = uri.toString()+"acciones/crearViaje.php?" +
-                        "idusuario=" + idusuario +
-                        "&lat="+latitudUsuario+
-                        "&lon="+longitudUsuario
-
-            val jsonObjectRequest = JsonObjectRequest(url,null,
-                Response.Listener {response ->
-
-                    // Creamos un viaje
-                    Alerter.create(this@MapsActivity)
-                        .setTitle("Auto")
-                        .setText(response.getString("mensaje"))
-                        .enableSwipeToDismiss()
-                        .setBackgroundColorRes(R.color.colorPrimary)
-                        .show()
-                    validarPeticionVehiculo()
-                },
-                Response.ErrorListener { error -> error.printStackTrace() })
-            queue.add(jsonObjectRequest)
+            pedirVehiculo(latitudUsuario, longitudUsuario) // Boton pedir viaje
         }
         btn_chat.setOnClickListener { // Boton para abrir Chat
             val intent = Intent(this, Chat::class.java)
@@ -188,6 +167,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
+    fun pedirVehiculo(lat: Double, lon:Double)
+    {// Funcion para pedir vehiculo
+
+        var url = uri+"acciones/crearViaje.php?" +
+                "idusuario=" + idusuario +
+                "&lat="+lat+
+                "&lon="+lon
+
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+
+                // Creamos un viaje
+                Alerter.create(this@MapsActivity)
+                    .setTitle("Auto")
+                    .setText(response.getString("mensaje"))
+                    .enableSwipeToDismiss()
+                    .setBackgroundColorRes(R.color.colorPrimary)
+                    .show()
+                validarPeticionVehiculo()
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
+
+
     override fun onMapReady(googleMap: GoogleMap) {
         // Este algoritmo se inicia una vez que el mapa está listo
         mMap = googleMap
@@ -201,7 +206,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             startActivity(intent)
         }))
         alert.addAction(AlertAction("Historial", AlertActionStyle.DEFAULT, { action ->
-            Toast.makeText(this, "Historial de viajes", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, Historial::class.java)
+            startActivity(intent)
         }))
         alert.addAction(AlertAction("Crear rutina", AlertActionStyle.DEFAULT, { action ->
             Toast.makeText(this, "Rutinas", Toast.LENGTH_SHORT).show()
@@ -228,7 +234,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.clear()
         marcadorUsuario = mMap.addMarker(MarkerOptions().position(tag).title("Tu ubicación")) // Agregamos el marcador
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(lat,long),15.0f))  // Enviamos a la camara hacia esa ubicación con un zoom de 15.0
-        address(lat,long) // Sabemos la dirección física del usuario usando la latitud y longitud
+        et_ubicacion.setText(address(lat,long))
         stoplocationUpdates()// Frenamos la auto-localizacion
     }
 
@@ -237,7 +243,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     fun validarPeticionVehiculo(){
         // Este algoritmo verifica si el usuario pidió un vehículo
 
-        var url = uri.toString()+"acciones/validarPedidos.php?" + "idusuario="+ idusuario
+        var url = uri+"acciones/validarPedidos.php?" + "idusuario="+ idusuario
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Validamos si el usuario ya pidió un vehiculo
@@ -258,10 +264,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     btn_relocalizacion.visibility = View.GONE
                     tv_label_activityMaps.setText("El vehículo se enviará a:")
                     tv_label_activityMaps.setTextColor(Color.parseColor("#313131"))
+
+                    et_ubicacion.setText(address(response.getString("latitud").toDouble(), response.getString("longitud").toDouble()))
+
+
                     if(response.getString("mensaje") == "0"){
                         // Si no tiene conductor
                         btn_cancelar.visibility = View.VISIBLE
                         btn_chat.visibility = View.GONE
+                        et_ubicacion.setText(address(latitudUsuario, longitudUsuario))
 
                     }else{
                         // Si tiene conductor
@@ -275,7 +286,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
 
                 if(usuarioPidioAuto == 1){ // El usuario pidió un vehículo
-
                     // Verificamos que si hay el conductor aceptó su viaje
                     var handler = Handler()
                     handler.postDelayed( {
@@ -289,7 +299,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     fun cancelarVehiculo(){
         // Algoritmo para cancelar vehículo
 
-        var url = uri.toString()+"acciones/cancelarVehiculo.php?" +
+        var url = uri+"acciones/cancelarVehiculo.php?" +
                     "idusuario="+ idusuario
 
         val jsonObjectRequest = JsonObjectRequest(url,null,
@@ -321,7 +331,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     fun verificarMensajes() {
         // Este algoritmo verifica si el conductor tiene mensajes sin leer
-        var url = uri.toString()+"acciones/mensajesSinLeer.php?" +
+        var url = uri+"acciones/mensajesSinLeer.php?" +
                     "idconductor=" + idusuario
 
         val jsonObjectRequest = JsonObjectRequest(url, null,
@@ -356,7 +366,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // Este algoritmo muestra al usuario por donde anda el conductor (Se actualiza cada 10 segundos)
 
 
-        var url = uri.toString()+"acciones/recibirCoordenadas.php?" +
+        var url = uri+"acciones/recibirCoordenadas.php?" +
                     "idconductor=" + idConductor
 
         val jsonObjectRequest = JsonObjectRequest(url, null,
@@ -402,7 +412,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
-        var url = uri.toString()+"acciones/recibirPublicidad.php"
+        var url = uri+"acciones/recibirPublicidad.php"
 
         val jsonObjectRequest = JsonObjectRequest(url, null,
             Response.Listener { response ->
@@ -412,7 +422,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     .into(iv_dialog)
                 btn_dialog_cerrar.visibility = View.VISIBLE
             },
-            Response.ErrorListener { error -> error.printStackTrace() })
+            Response.ErrorListener {
+                    error -> error.printStackTrace()
+                    dialog.dismiss()
+            })
         queue.add(jsonObjectRequest)
 
 
@@ -469,8 +482,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         GEOLOCALIZACION (NO TOCAR!!!!)
     **************************************************************************************** */
 
-    fun address(lat: Double, long: Double){
+    fun address(lat: Double, long: Double): String{
         // Convierte latitud y longitud en una dirección física
+        var respuesta = ""
 
         try {
             geocodeMatches = Geocoder(this).getFromLocation(lat, long, 1)
@@ -479,8 +493,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             e.printStackTrace()
         }
         if (geocodeMatches != null) // Si la direccion existe =>
-            et_ubicacion.setText(geocodeMatches!![0].getAddressLine(0))
+            respuesta = geocodeMatches!![0].getAddressLine(0)
 
+
+        return respuesta
     }
 
     private fun buildAlertMessageNoGps() {

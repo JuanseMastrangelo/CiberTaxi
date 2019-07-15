@@ -16,7 +16,7 @@ import com.tapadoo.alerter.Alerter
 
 class editarUsuario : AppCompatActivity() {
 
-    val uri = R.string.uri
+    val uri = "http://eleccionesargentina.online/WebServices/"
 
     // WebService | Iniciamos el objeto
     lateinit var queue: RequestQueue
@@ -70,7 +70,7 @@ class editarUsuario : AppCompatActivity() {
     fun cargarDatos() {
         // Este método carga los datos del usuario
 
-        var url = uri.toString()+"sesion/cargarDatos.php?" +
+        var url = uri+"sesion/cargarDatos.php?" +
                     "id="+ idusuario
             val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener { response ->
@@ -89,7 +89,7 @@ class editarUsuario : AppCompatActivity() {
     fun guardarCambios() {
         // Este método guarda los cambios
 
-        var url = uri.toString()+"sesion/actualizarDatos.php?" +
+        var url = uri+"sesion/actualizarDatos.php?" +
                     "id="+ idusuario +
                     "&apellido="+et_apellido_eu.text+
                     "&telefono="+et_telefono_eu.text
