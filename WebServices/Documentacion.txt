@@ -1,0 +1,219 @@
+  ___    ____    ____    ____    ____    ____      __      _  _    _  _              __         ___  
+ / __)  (_  _)  (  _ \  ( ___)  (  _ \  (_  _)    /__\    ( \/ )  ( \/ )            /  )       / _ \ 
+( (__    _)(_    ) _ <   )__)    )   /    )(     /(__)\    )  (    \  /              )(       ( (_) )
+ \___)  (____)  (____/  (____)  (_)\_)   (__)   (__)(__)  (_/\_)   (__)             (__)  ()   \___/ 
+
+
+_______________________________________________________________
+1.0
+C I B E R T A X Y        R E S O U R C E S
+(Documentación para programadores - Kotlin)
+Email de contacto: juansemastrangeloo10@gmail.com
+_______________________________________________________________
+
+
+
+
+I N S T A L A C I Ó N
+___________________________________________
+
+1) Es necesario poseer una base de datos y servidor (recomiendo hostinger.com.ar) y una cuenta en Google Play.
+
+2) Configurar el archivo `.config` ubicado en Webservices/BBDD/ con sus datos del servidor y base de datos
+
+3) Dirigirse al PHPMYADMIN de su servidor, ir a la pestaña 'Importar' y añadir el archivo `database.SQL`, click en 'Continuar'
+
+4) Para comenzar a utilizar los servicios de Google nos dirigimos a 'https://cloud.google.com/maps-platform/pricing/?hl=es', clickeamos en 'EMPEZAR' y seleccionamos 'Maps' y le damos a 'Continuar'. Creamos un nuevo proyecto (El nombre queda a su disposición). Necesitamos facturar las operaciones (explicado en el apartado 'Extras' ubicado en el final del documento), creamos una facturación y la seleccionamos. IMPORTANTE! Esta nos dará una Key la cual la copiaremos y guardaremos (Tiene un aspecto de una cadena de letras y numeros, empieza con AIza).
+
+Buscamos las siguientes api's en la barra de búsqueda del sitio:
+    - Maps SDK for Android
+    - Maps JavaScript API
+    - Directions API
+    - Geocoding API
+
+Entramos a cada una de ellas y las habilitamos clickeando en el botón 'Habilitar' que se encuentra en la parte superior (color celeste).
+
+
+
+5) Descargar Android Studio y abrir el proyecto 'CiberTaxiApp' ubicado en la carpeta 'Webservices', dirigirse al menú del proyecto a la izquierda. Ahí encontrarás un menu desplegable llamado 'Android', selecciona 'Project'. Una vez seleccionado se te mostrarán unas cuantas carpetas, dirigirse a 'CiberTaxi > app > src > release > res > values > google_maps_api.xml'.
+
+6) Copiar la Key generada en el paso 4 en entre las etiquetas <'String'> quedando algo por el estilo: 
+    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">AQUÍ_LA_KEY_GENERADA</string>
+Guardar la key porque la necesitaremos más adelante
+
+7) Ir a la pestaña 'build' ubicada en el menú superior del programa Android Studio, y seleccionar 'Generate Signed Bundle or APK'. Se abrirá un menú donde seleccionaremos 'APK', click en 'Siguiente'.
+
+Damos click en 'Create new...', en 'Key Store Path' seleccionamos una carpeta la cual la necesitaremos para realizar cambios en nuestra aplicacion, por esto es necesario tener la carpeta en un lugar donde nos acordemos y no la borremos.
+En Password añadimos una contraseña facil de recordar o que usemos a menudo ya que sin esta no se podrán hacer cambios en la app.
+En alias dejamos 'key0', en password escribimos una contraseña que puede ser la añadida anteriormente, no es necesario cambiarla.
+Validity: es el vencimiento de la app, podemos darle '150' para que no de problemas.
+Certificate: Completamos con nuestros datos. Damos click en OK una vez finalizado.
+Una vez dado click en 'Ok', clickeamos 'Next' y aceptamos guardar los datos.
+
+Seleccionamos 'release' de 'Build Variants', 'V1' y 'V2' de 'Signature Versions' y de damos a 'Finish'. Comenzará a crear la APK de nuestra aplicación, puede tardar unos cuantos minutos.
+Una vez finalizado nos aparecerá un cartel en el costado derecho abajo, clickeamos donde dice 'locate', nos abrirá una carpeta de nuestro proyecto; nos dirigimos a release ahí encontraremos el APK llamado apk-release.apk o algo por el estilo. Este es el que necesitamos subir a Google Play.
+
+
+8) Ahora habilitaremos el servicio en nuestra web para esto necesitamos dirigirnos a index.php ubicado en 'Webservices/PanelAdmin'. Al final de este archivo encontraremos un <script> con la api de google Maps. Dentro de su url encontrarás la palabra 'KEY_AQUÍ', esto lo reemplazaras por tu key generada en el paso 4
+
+9) Configurar el `.config` ubicado en 'Webservices/PanelAdmin/BBDD' con los datos de tu servidor y tu base de datos.
+
+10) Subir los archivos al servidor: Nos conectamos al servidor mediante FTP y subimos las carpetas:
+    - acciones
+    - BBDD
+    - PanelAdmin
+    - sesion
+
+Luego nos dirigimos a la url proporcionada por el hosting y nos vamos a la carpeta PanelAdmin concatenando tu 'url/PanelAdmin'
+
+LISTO!
+
+Si tienes problemas con la instalación envía tu consulta al email de contacto proporcionado anteriormente.
+
+
+
+B A S E      D E      D A T O S
+___________________________________________
+
+=> controlViajes: Tabla donde se almacenan los viajes finalizados
+=> extras: Almacena parámetros extras.(Ejemplo: el estado de la agencia manual-automático)
+=> geolocalizaciones: IMPORTANTE! Tabla que almacena los viajes. Si el campo idConductor está vacio, el viaje se mostrará en el mapa. Una vez tomado el viaje, se agrega un idConductor y este deja de ser visible.
+=> localizacionConductor: Latitud y Longitud del conductor en Tiempo Real (1 fila por conductor)
+=> mensajes: Almacena los mensajes entre el conductor y el usuario
+=> movimientosConductor: Almacena la Latitud y Longitud del conductor cuando este está en movimiento (1 o más filas por conductor) ADVERTENCIA! Vaciar la base de datos cada cierto tiempo debido a que envía cientos de datos por minuto
+=> publicidad: Almacena la url de la imagen de publicidad
+=> usuarios: IMPORTANTE! Almacena los datos del usuario
+
+
+
+C A R P E T A | PHP - MYSQL
+___________________________________________
+
+- /BBDD
+        ↳ - /config
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Contiene la conexion con la base de datos
+
+
+- /acciones
+        ↳ crearViaje
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Crear el pedido del usuario de un auto dejando vacío el campo 'idconductor' dando a entender que no tiene un vehículo asignado.
+            ▮ Como funciona: Utiliza GET para tomar valores de la url y luego las envia por json
+            ▮ Retorna: json con confirmación de viaje ó error (el usuario ya pidió un vehículo)
+        ↳ cancelarVehiculo
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Cancelar vehículo
+            ▮ Como funciona: Utiliza GET para tomar valores de la url y luego las envia por json
+            ▮ Retorna: json con mensaje => 'false' o 'true'
+        ↳ peticionesViajes
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Retornar todos los pedidos de viajes para agregar marcadores
+            ▮ Como funciona: Utiliza GET para tomar valores de la url yFluego las envia por json
+            ▮ Retorna: json con viajes_array => {array}
+        ↳ validarPedidos
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Validar si el usuario ya pidió un vehículo
+            ▮ Como funciona: Utiliza GET para tomar valores de la url y luego las envia por json
+            ▮ Retorna: json con mensaje => 'false' o 'true'
+        ↳ tomarViaje
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Conductor toma el viaje
+            ▮ Como funciona: Utiliza GET para tomar valores de la url y luego las envia por json
+            ▮ Retorna: json
+        ↳ verificarMenejoAgencia
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Saber si la agencia control los viajes manualmente o los conductores lo hacen ellos mismos
+            ▮ Como funciona: Envia true si lo hace la agencia; Envia false si los conductores controlan sus viajes
+            ▮ Retorna: json
+        ↳ deshabilitarConductor
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Esconde al conductor; Desconecta al conductor de la aplicación
+            ▮ Como funciona: Elimina la fila del usuario de la tabla 'geoLocalizacionConductor'
+            ▮ Retorna: json
+        ↳ enviarCoordenadas
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Envia las coordenadas a la base de datos para saber la posicion del vehículo (para la agencia y al usuario)
+            ▮ Como funciona: Crea o actualiza una fila en la tabla 'geoLocalizacionConductor', enviando Latitud y Longitud como parametros. También almacena la Lat y Long del conductor en la tabla 'movimientosConductor' sii el conductor está en movimiento
+            ▮ Retorna: json
+        ↳ enviarMensaje
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Este es el chat entre el conductor y el usuario (Indistinto)
+            ▮ Como funciona: Crea filas en la tabla 'mensajes' con un origen, un destino y un mensaje
+            ▮ Retorna: json
+        ↳ peticionesChat
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Devuelve todos los mensajes del usuario
+            ▮ Como funciona: Muestra en un array todos los mensajes del usuario de la base de datos 'mensajes'
+            ▮ Retorna: json
+        ↳ marcarVisto
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Marca el mensaje como visto en el chat
+            ▮ Como funciona: Actualiza el campo 'visto' de la tabla 'mensajes'
+            ▮ Retorna: json
+        ↳ mensajesSinLeer
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Comprueba si el usuario tiene mensajes sin leer
+            ▮ Como funciona: Se envia el usuario como parámetro _GET y se devuelve status=true si posee un mensaje sin LEER a partir del campo 'visto' de la tabla 'mensajes'
+            ▮ Retorna: json
+        ↳ recibirCoordenadas
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Responde coordenadas de un conductor
+            ▮ Como funciona: Se envia el id del conductor y este devuelve su Lat y Long de la tabla 'geoLocalizacionConductor'
+            ▮ Retorna: json
+        ↳ verificarManejoAgencia
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Verifica si una agencia está manejando los viajes manualmente o si el conductor maneja sus propios viajes
+            ▮ Como funciona: Devuelve true si la agencia está manejando los viajes. Usa la tabla 'extras' con dato 'manejoAgencia'
+            ▮ Retorna: json
+        ↳ viajeFinalizado
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Almacena un nuevo viaje finalizado del conductor
+            ▮ Como funciona: Almacena en la base de datos 'controlViajes' el id y fecha del viaje conductor que finalizó un viaje
+            ▮ Retorna: json
+        ↳ recibirPublicidad
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Envía publicidad personalizadas desde la base de datos
+            ▮ Como funciona: Devuelve la url de las imagenes en la Base de Datos 'publicidad'. Esta escoje una al azar
+            ▮ Retorna: json
+        ↳ crearViajeConductor
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Crea un nuevo viaje. Esta función es para los conductores que toman pasajeros en la vía pública o llamados a la agencia
+            ▮ Como funciona: Crea una fila en la tabla 'geolocalizaciones' con un `idUsuario` random creado a partir de un {rand().$idconductor} imposible de repetír. Devuelve 'indefinido' como parámetros
+            ▮ Retorna: json
+
+
+- /sesion
+        ↳ abrirSesion
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Inicia sesion, login del usuario
+            ▮ Como funciona: Envia los datos del usuario si el login es correcto, envia 'status=false' si el login es incorrecto
+            ▮ Retorna: json
+        ↳ registrarSesion
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Registrar un nuevo usuario
+            ▮ Como funciona: Envia los datos del usuario si el registro es correcto, envia 'status=false' si el usuario ya existe
+            ▮ Retorna: json
+        ↳ cargarDatos
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Enviar datos a la aplicacion
+            ▮ Como funciona: Envia los datos del usuario a partir de su id
+            ▮ Retorna: json
+        ↳ actualizarDatos
+            ▮ Lenguaje: PHP
+            ▮ Objetivo: Guarda y actualiza los datos enviado por el usuario desde la actividad 'editarUsuario'
+            ▮ Como funciona: Recibe datos e id del usuario por _GET; Devuelve true
+            ▮ Retorna: json
+
+
+
+
+E X T R A S
+___________________________________________
+
+Facturar las operaciones: Google maps comenzó a tener un costo por sus servicios. Podemos enlazar nuestra tarjeta con nuestra cuenta y Google nos regalará 200 créditos por mes para uso de google maps. 
+
+
+❤ Muchas gracias por comprar nuestros servicios. Nos comprometemos a seguír enviándote novedades y actualizaciones. Cualquier duda o reclamos podes enviarla a mi email personal proporcionado en el header del archivo.
+
+   
