@@ -3,6 +3,7 @@ package com.aplicacion.cibertaxi.historialAdapter
 
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.location.Address
 import android.location.Geocoder
@@ -18,6 +19,7 @@ import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
+import com.aplicacion.cibertaxi.Chat
 import com.aplicacion.cibertaxi.MapsActivity
 import com.tapadoo.alerter.Alerter
 import java.io.IOException
@@ -102,7 +104,6 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
 
-                MapsActivity().validarPeticionVehiculo() // Llamamos al método para validar la peticion
                 Toast.makeText(context, "Se pidió un vehículo", Toast.LENGTH_SHORT).show()
             },
             Response.ErrorListener { error -> error.printStackTrace() })

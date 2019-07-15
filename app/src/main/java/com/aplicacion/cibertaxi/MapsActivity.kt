@@ -158,9 +158,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
-        validarPeticionVehiculo()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
-
-
+        clocker()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
         abrirPublicidad()
 
     }
@@ -229,7 +227,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     fun agregarMarcadorUsuario(lat: Double,long: Double){
         // Algoritmo para agregar marcador del usuario
-
         val tag = LatLng(lat, long)
         mMap.clear()
         marcadorUsuario = mMap.addMarker(MarkerOptions().position(tag).title("Tu ubicación")) // Agregamos el marcador
@@ -266,13 +263,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     tv_label_activityMaps.setTextColor(Color.parseColor("#313131"))
 
                     et_ubicacion.setText(address(response.getString("latitud").toDouble(), response.getString("longitud").toDouble()))
-
-
+                    agregarMarcadorUsuario(response.getString("latitud").toDouble(), response.getString("longitud").toDouble())
                     if(response.getString("mensaje") == "0"){
                         // Si no tiene conductor
                         btn_cancelar.visibility = View.VISIBLE
                         btn_chat.visibility = View.GONE
-                        et_ubicacion.setText(address(latitudUsuario, longitudUsuario))
 
                     }else{
                         // Si tiene conductor
@@ -283,14 +278,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         verificarMensajes() // verificamos si tenemos mensajes del conductor
                         localizacionDeConductor(response.getString("mensaje")) // mostramos por donde anda el conductor (Pasamos el id del conductor como parametro)
                     }
-                }
-
-                if(usuarioPidioAuto == 1){ // El usuario pidió un vehículo
-                    // Verificamos que si hay el conductor aceptó su viaje
-                    var handler = Handler()
-                    handler.postDelayed( {
-                        validarPeticionVehiculo()
-                    }, 5000) // Cada 5 segundos actualizamos
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
@@ -435,13 +422,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+    fun clocker()
+    { // Funcion que se ejecuta cada 'x' tiempo
+
+        validarPeticionVehiculo()
 
 
 
+        var handler = Handler()
+        handler.postDelayed( {
+            clocker()
+        }, 5000) // Cada 5 segundos actualizamos
+    }
 
-
-
-
+    override fun onRestart() {
+        super.onRestart()
+        clocker()
+    }
 
 
 
