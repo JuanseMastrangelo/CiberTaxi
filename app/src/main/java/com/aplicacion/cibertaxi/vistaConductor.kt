@@ -71,6 +71,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
 
     // Datos del conductor logueado
     var idusuario = 0
+    var idViajeActual = "" // Id del viaje que esta realizando el conductor
 
     //variable para saber si esta en viaje
     var enViaje = 0
@@ -122,9 +123,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         // WebService | Inicialización
         queue = Volley.newRequestQueue(this)
 
-        // Funcion inicial
-        verificarConductor() // Verifica si el conductor ya aceptó un viaje
-        clocker() // Funcion que se ejecuta cada 'x' tiempo
+
 
 
 
@@ -169,6 +168,12 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         mMapC.setOnMarkerDragListener(this)
         mMapC.setInfoWindowAdapter(this)
         mMapC.setOnInfoWindowClickListener(this)
+
+
+        // Funcion inicial
+        verificarConductor() // Verifica si el conductor ya aceptó un viaje
+        clocker() // Funcion que se ejecuta cada 'x' tiempo
+
     }
 
     fun configuracion(){
@@ -285,6 +290,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
                     address(valoresMarcador[0].toDouble(), valoresMarcador[1].toDouble()) // Enviamos los datos de Latitud y Longitud a address() para saber la dirección fisica. Este método lo setea en el TextView origen
 
                     interfazConductor("ocupado")
+                    idViajeActual = valoresMarcador[6]
 
                     agregarMarcadorConductor(conductor_Lat, conductor_Lon) // Agregamos el marcador conductor
                     agregarMarcadorCliente(valoresMarcador[0].toDouble(), valoresMarcador[1].toDouble()) // Agregamos el marcador cliente
@@ -353,11 +359,6 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         { // El conductor no tiene un viaje
             verificarConductor() // Verificamos si se le asignó un viaje remotamente
         }
-        var handler = Handler()
-        handler.postDelayed( {
-            verificarMensajes()
-        }, 5000) // Cada 5 segundos
-
     }
 
     fun clocker()
@@ -365,10 +366,10 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
 
         enviarCoordenadas() // Enviamos coordenadas
         verificarConductor() // Verificamos el estado del conductor
-        verificarMensajes() // Verificamos si se tienen nuevos mensajes
         verificarManejoAgencia() // Verificamos si la agencia asigna los viajes o si el conductor lo hace manualmente
 
         if(enViaje == 1) // Seguimos al conductor
+            verificarMensajes() // Verificamos si se tienen nuevos mensajes
             mMapC.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(conductor_Lat, conductor_Lon), 16.0f))
 
         var handler = Handler()
@@ -417,7 +418,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
             finalizarViaje("Exito")
         }))
         alert.addAction(AlertAction("Cancelar viaje", AlertActionStyle.DEFAULT, { action ->
-            finalizarViaje("Cancelado por conductor")
+            finalizarViaje("Cancelar")
         }))
         alert.addAction(AlertAction("Salir", AlertActionStyle.NEGATIVE, { action -> }))
         alert.show(this)
@@ -426,12 +427,18 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun finalizarViaje(mensaje:String)
     { // Este algoritmo finaliza el viaje
 
-        enviarViajeFinalizado(mensaje) // Enviamos los datos del viaje finalizado a una base de datos para controlar los viajes
-        var url = uri+"acciones/cancelarVehiculo.php?idconductor="+ idusuario
+        var url = uri+"acciones/cancelarVehiculo.php?" +
+                "idconductor="+ idusuario+
+                "&dato="+mensaje +
+                "&lat="+ conductor_Lat +
+                "&lon="+ conductor_Lon+
+                "&dato="+ mensaje +
+                "&idViaje=" + idViajeActual
+
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Finalizamos viaje
-                if(response.getString("mensaje") == "true")
+                if(response.getString("status") == "true")
                     crearAlerta("Viaje Finalizado", "El viaje fue finalizado con éxito", R.color.green)
                 verificarConductor() // Escondemos el LinearLayout con datos del viaje
             },
@@ -443,19 +450,6 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         startLocationUpdates() // Mostramos ubicación del conductor
         tv_viajesDisponibles.setText("Buscando pasajeros..") // seteamos el TextView `tv_viajesDisponibles`
 
-    }
-
-    fun enviarViajeFinalizado(mensaje:String)
-    { // Este método envia a la base de datos la finalización del viaje para tener un conteo
-
-        var url = uri+"acciones/viajeFinalizado.php?" +
-                    "idconductor="+ idusuario +
-                    "&lat="+ conductor_Lat +
-                    "&lon="+ conductor_Lon+
-                    "&mensaje="+ mensaje
-        val jsonObjectRequest = JsonObjectRequest(url,null,
-        Response.Listener {response ->},Response.ErrorListener { error -> error.printStackTrace() })
-        queue.add(jsonObjectRequest)
     }
 
     fun inhabilitarMovil()
@@ -484,7 +478,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
                     verificarConductor()
                 }
                 else
-                    crearAlerta("Error", "Error, ya tienes un viaje asignado", R.color.red)
+                    crearAlerta("Espere", "Estamos cargando el viaje...", R.color.red)
             },Response.ErrorListener { error -> error.printStackTrace() })
         queue.add(jsonObjectRequest)
     }

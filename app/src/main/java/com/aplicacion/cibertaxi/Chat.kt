@@ -91,6 +91,7 @@ class Chat : AppCompatActivity() {
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener { response ->
                 if(response.getBoolean("status")){// Verificamos que existen viajes disponibles
+
                     val json = response.getJSONArray("mensajes_array") // Tomamos la cadena json con los datos
                     var i=0 // inicializamos i en 0
                     while (i < json.length()){ // Este algoritmo crea un while con el tamaño del json que traemos de la base de datos con los datos de los usuarios que están pidiendo un viaje

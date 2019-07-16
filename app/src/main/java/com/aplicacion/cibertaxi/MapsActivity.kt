@@ -21,7 +21,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
-import android.util.Log
 import android.view.View
 import android.view.Window
 import android.widget.*
@@ -51,6 +50,9 @@ import com.tapadoo.alerter.Alerter
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.activity_maps.btn_chat
 import java.io.IOException
+import java.util.*
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -136,16 +138,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         btn_relocalizacion.setOnClickListener {
             // Boton re-localizar al usuario (actualiza su posición)
             startLocationUpdates()
-            Alerter.create(this@MapsActivity)
-                .setTitle("Localización")
-                .setText("Localización actualizada")
-                .enableSwipeToDismiss()
-                .setBackgroundColorRes(R.color.colorPrimary)
-                .show()
+
+            crearAlerta("Localización", "Localización actualizada", R.color.colorPrimary)
         }
 
         btn_pedirRemisse.setOnClickListener {
-            pedirVehiculo(latitudUsuario, longitudUsuario) // Boton pedir viaje
+            pedirRemisseMenu() // Boton pedir viaje
         }
         btn_chat.setOnClickListener { // Boton para abrir Chat
             val intent = Intent(this, Chat::class.java)
@@ -158,35 +156,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
-        clocker()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
-        abrirPublicidad()
 
-    }
-
-
-
-    fun pedirVehiculo(lat: Double, lon:Double)
-    {// Funcion para pedir vehiculo
-
-        var url = uri+"acciones/crearViaje.php?" +
-                "idusuario=" + idusuario +
-                "&lat="+lat+
-                "&lon="+lon
-
-        val jsonObjectRequest = JsonObjectRequest(url,null,
-            Response.Listener {response ->
-
-                // Creamos un viaje
-                Alerter.create(this@MapsActivity)
-                    .setTitle("Auto")
-                    .setText(response.getString("mensaje"))
-                    .enableSwipeToDismiss()
-                    .setBackgroundColorRes(R.color.colorPrimary)
-                    .show()
-                validarPeticionVehiculo()
-            },
-            Response.ErrorListener { error -> error.printStackTrace() })
-        queue.add(jsonObjectRequest)
     }
 
 
@@ -194,7 +164,96 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         // Este algoritmo se inicia una vez que el mapa está listo
         mMap = googleMap
+
+        clocker()  // Validamos si el usuario ya pidió un vehiculo para mostrar cartel de cancelar
+        abrirPublicidad()
     }
+
+
+    fun pedirVehiculo(lat: Double, lon:Double, fecha: String)
+    {// Funcion para pedir vehiculo
+
+        Toast.makeText(this, fecha, Toast.LENGTH_SHORT).show()
+
+        var url = uri+"acciones/crearViaje.php?" +
+                "idusuario=" + idusuario +
+                "&lat="+lat+
+                "&lon="+lon+
+                "&fecha="+fecha
+
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+
+                // Creamos un viaje
+                crearAlerta("Auto", response.getString("mensaje"), R.color.colorPrimary)
+                validarPeticionVehiculo()
+            },
+            Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
+
+    fun crearAlerta(titulo: String, texto: String, color:Int)
+    { // Esta funcion crea las alertas
+
+        Alerter.create(this@MapsActivity)
+            .setTitle(titulo)
+            .setText(texto)
+            .enableSwipeToDismiss()
+            .setBackgroundColorRes(color)
+            .show()
+    }
+
+    fun pedirRemisseMenu()
+    {
+
+        val alert = AlertView("Pedir vehículo", "Seleccione una opción:", AlertStyle.DIALOG)
+        alert.addAction(AlertAction("Ahora", AlertActionStyle.DEFAULT, { action ->
+            pedirVehiculo(latitudUsuario, longitudUsuario, "")
+        }))
+        alert.addAction(AlertAction("Indicar fecha y hora", AlertActionStyle.DEFAULT, { action ->
+
+            var c = Calendar.getInstance()
+            var ano = c.get(Calendar.YEAR)
+            var mes = c.get(Calendar.MONTH)
+            var dia = c.get(Calendar.DAY_OF_MONTH)
+            var hora = c.get(Calendar.HOUR_OF_DAY)
+            var minuto = c.get(Calendar.MINUTE)
+
+            var ano_picker = 0
+            var mes_picker = 0
+            var dia_picker = 0
+            var hora_picker = 0
+            var minuto_picker = 0
+
+
+
+            val tpd = TimePickerDialog(this, TimePickerDialog.OnTimeSetListener {view, hourOfDay, minute ->
+
+                hora_picker = hourOfDay
+                minuto_picker = minute
+
+                var fecha_picker = ano_picker.toString()+"-"+mes_picker.toString()+"-"+dia_picker.toString()+"|"+hora_picker.toString()+":"+minuto_picker.toString()+":00"
+
+                pedirVehiculo(latitudUsuario, longitudUsuario, fecha_picker)
+            }, hora, minuto, true)
+
+            val dpd = DatePickerDialog(this, DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                ano_picker = year
+                mes_picker = monthOfYear
+                dia_picker = dayOfMonth
+                tpd.show() // Mostramos la hora
+            }, ano, mes, dia)
+
+            dpd.show()
+
+
+        }))
+        alert.addAction(AlertAction("Cancelar", AlertActionStyle.DEFAULT, { action -> }))
+        alert.show(this)
+    }
+
+
 
 
     fun configuracion(){
@@ -273,8 +332,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         // Si tiene conductor
                         tv_label_activityMaps.setText("Confirmado! Un automovil está yendo a esta ubicación, siguelo en el mapa: ")
                         tv_label_activityMaps.setTextColor(Color.parseColor("#8BC34A"))
-                        btn_cancelar.visibility = View.GONE
                         btn_chat.visibility = View.VISIBLE
+                        btn_cancelar.visibility = View.VISIBLE
                         verificarMensajes() // verificamos si tenemos mensajes del conductor
                         localizacionDeConductor(response.getString("mensaje")) // mostramos por donde anda el conductor (Pasamos el id del conductor como parametro)
                     }
@@ -292,13 +351,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Validamos si el usuario ya pidió un remisse, hacemos visible el boton de cancelar
-                if(response.getString("mensaje") == "true") {
-                    Alerter.create(this@MapsActivity)
-                        .setTitle("Auto cancelado")
-                        .setText("El vehiculo pedido fué cancelado")
-                        .enableSwipeToDismiss()
-                        .setBackgroundColorRes(R.color.red)
-                        .show()
+                if(response.getBoolean("status") == true) {
+
+                  crearAlerta("Auto cancelado", "El vehiculo pedido fué cancelado", R.color.red)
 
                 }
                 validarPeticionVehiculo()
@@ -326,12 +381,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 if (response.getBoolean("status") == true) {
                     // Creamos una alerta indicando que tiene mensajes sin leer
                     btn_chat.setText("Chat (" + response.getString("cantidad") + ")")
-                    Alerter.create(this@MapsActivity)
-                        .setTitle("Mensajes")
-                        .setText("Tienes mensajes sin leer: " + response.getString("cantidad"))
-                        .enableSwipeToDismiss()
-                        .setBackgroundColorRes(R.color.green)
-                        .show()
+
+                    crearAlerta("Mensajes", "Tienes mensajes sin leer: " + response.getString("cantidad"), R.color.green)
 
                     // Reproducimos sonido
                     var mp = MediaPlayer.create(this, R.raw.notificacion)
