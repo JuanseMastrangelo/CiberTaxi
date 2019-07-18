@@ -87,6 +87,22 @@
             android:layout_marginTop="132dp"
             app:layout_constraintTop_toBottomOf="@+id/btn_chat"/>
 
+    <ImageView
+            android:id="@+id/iv_alarma"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="false"
+            android:visibility="gone"
+            android:textColor="@android:color/white"
+            android:src="@drawable/ic_warning"
+            android:padding="5dp"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="@+id/map"
+            android:layout_marginTop="100dp"
+            app:layout_constraintTop_toBottomOf="@+id/btn_chat"/>
+
+
+
     <LinearLayout
             android:id="@+id/ll_top_conductor"
             android:layout_width="match_parent"
@@ -120,7 +136,7 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"
-                        android:text="Juanse Mastrangelo"/>
+                        android:text=""/>
 
             </LinearLayout>
 
@@ -140,7 +156,7 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"
-                        android:text="5 estrellas"/>
+                        android:text=""/>
 
             </LinearLayout>
 
@@ -160,7 +176,7 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/black"
-                        android:text="5 estrellas"/>
+                        android:text=""/>
 
             </LinearLayout>
         </LinearLayout>

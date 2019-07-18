@@ -111,8 +111,8 @@ class registro_sesion : AppCompatActivity() {
             },
             Response.ErrorListener {
                     error -> error.printStackTrace()
-                    Toast.makeText(this, "Reintentando", Toast.LENGTH_SHORT).show()
-                    verificarSesion() // Si hay error intentamos nuevamente
+                dialog.dismiss() // Quitamos el cartel de cargando
+                Toast.makeText(this, "Error de conexión, intente nuevamente. Si no conecta intente reiniciar la aplicación", Toast.LENGTH_SHORT).show()
             })
         queue.add(jsonObjectRequest)
 

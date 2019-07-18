@@ -2,6 +2,8 @@ package com.aplicacion.cibertaxi
 
 import android.Manifest
 import android.app.AlertDialog
+import android.app.Dialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -19,11 +21,14 @@ import androidx.appcompat.app.AppCompatActivity
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.appcompat.widget.AlertDialogLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.android.cibertaxi.R
@@ -44,6 +49,7 @@ import com.irozon.alertview.AlertStyle
 import com.irozon.alertview.AlertView
 import com.irozon.alertview.objects.AlertAction
 import kotlinx.android.synthetic.main.activity_vista_conductor.*
+import org.json.JSONArray
 
 class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerDragListener , GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
@@ -77,6 +83,11 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     var enViaje = 0
     var habilitado = true
     var manejoAgencia = true // variable que indica si los conductores asignan sus viajes Automaticamente o si la agencia lo hace
+
+    var tomandoDecision = false
+    var contadorSegundosTomandoDecision = 0
+    lateinit var dialogAceptarViaje: Dialog
+
 
     // GeoLocalizacion | Variables globales
     private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
@@ -186,6 +197,9 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
             val intent = Intent(this, Historial::class.java)
             startActivity(intent)
         }))
+        alert.addAction(AlertAction("AL-P", AlertActionStyle.DEFAULT, { action ->
+            activarAlarmaPanico()
+        }))
         alert.addAction(AlertAction("Cerrar Sesión", AlertActionStyle.NEGATIVE, { action ->
             val editor = prefs!!.edit()
             editor.remove("iniciado")
@@ -199,7 +213,24 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     }
 
 
-
+    fun activarAlarmaPanico()
+    {
+        if(manejoAgencia == false){ // Si la agencia no esta manejando los viajes
+            var url = uri+"acciones/alarmaPanico.php"
+            val jsonObjectRequest = JsonObjectRequest(url,null,
+                Response.Listener { response ->
+                    if(response.getBoolean("status")){// Verificamos que existen viajes disponibles
+                        iv_alarma.visibility = View.VISIBLE
+                        crearAlerta("Conductor", "AL-P Prendido", R.color.LightBlue)
+                    }else{
+                        iv_alarma.visibility = View.GONE
+                        crearAlerta("Conductor", "AL-P Apagado", R.color.red)
+                    }
+                },
+                Response.ErrorListener { error -> error.printStackTrace() })
+            queue.add(jsonObjectRequest)
+        }
+    }
 
     fun agregarMarcadorConductor(lat: Double,long: Double)
     {// Algoritmo para agregar marcador del conductor
@@ -274,15 +305,16 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun verificarConductor()
     {// Este algoritmo verifica si el conductor aceptó un viaje
 
-        var url = uri+"acciones/validarConductor.php?" + "idusuario="+ idusuario
+        var url = uri+"acciones/validarConductor.php?idusuario="+ idusuario
 
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Validamos si el usuario ya pidió un vehiculo
-                if(response.getString("mensaje") == "false") // El conductor no aceptó ningún viaje
+                if(response.getString("mensaje") == "0") // El conductor no aceptó ningún viaje
                     interfazConductor("libre")
-                else
+                else if(response.getString("mensaje") == "1")
                 {
+
                     var arrayRespuesta = response.getJSONArray("viajes_array") // Llamamos el JSONArray que respondio la url
                     var valoresMarcador = arrayRespuesta[0].toString().split("|") // Lo separamos para obtener los datos
                     tv_nombreConductor.setText(""+ valoresMarcador[3]) // seteamos el TextView `tv_nombreConductor`
@@ -298,14 +330,30 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
                     if(enViaje != 1)
                     { // Si no se notificó el viaje =>
                         // Reproducimos sonido
-                        var mp = MediaPlayer.create(this, R.raw.notificacion)
-                        mp.setVolume(volumenNotificacion.toFloat(), volumenNotificacion.toFloat())
-                        mp.start()
+                        reproducirSonido(R.raw.notificacion)
+
                         crearAlerta("Conductor", "Alerta! Ya tienes un viaje", R.color.red)
                         tv_viajesDisponibles.setText("En viaje")
+                        mostrarRuta(valoresMarcador[0].toDouble(), valoresMarcador[1].toDouble()) // Trazamos la ruta que debe realizar
                     }
 
                     enViaje =1 // Notificamos que tiene un viaje asignado
+
+
+
+                }else
+                { // Necesita aceptar
+
+                    reproducirSonido(R.raw.notificacion)
+                    enViaje =0 // Marcamos como auto disponible
+                    tomandoDecision = true
+                    aceptarViajePregunta() // Acepta el viaje? Enviamos los datos del viaje
+                    interfazConductor("libre")
+
+                    var arrayRespuesta = response.getJSONArray("viajes_array") // Llamamos el JSONArray que respondio la url
+                    var valoresMarcador = arrayRespuesta[0].toString().split("|") // Lo separamos para obtener los datos
+
+                    idViajeActual = valoresMarcador[6]
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
@@ -365,17 +413,31 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     { // Esta función se ejecuta cada 'x' tiempo con el objetivo de realizar todo en tiempo real
 
         enviarCoordenadas() // Enviamos coordenadas
-        verificarConductor() // Verificamos el estado del conductor
+        if(!tomandoDecision)
+            verificarConductor() // Verificamos el estado del conductor
+        else
+            contadorSegundosTomandoDecision++ // Contamos los segundos transcurridos desde la solicutud de aceptar viaje
+
+
         verificarManejoAgencia() // Verificamos si la agencia asigna los viajes o si el conductor lo hace manualmente
 
         if(enViaje == 1) // Seguimos al conductor
             verificarMensajes() // Verificamos si se tienen nuevos mensajes
             mMapC.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(conductor_Lat, conductor_Lon), 16.0f))
 
+
+
+        if(contadorSegundosTomandoDecision >= 10){ // Si el timeout supera los (x*3) segundos
+            crearAlerta("Aceptar viajes", "El viaje fué cancelado automáticamente", R.color.red)
+            aceptarViaje(0) // Volvemos a verificar la solicitud
+            tomandoDecision = false
+            contadorSegundosTomandoDecision = 0
+        }
+
         var handler = Handler()
         handler.postDelayed( {
             clocker()
-        }, 5000) // Cada 5 segundos
+        }, 3000) // Cada 3 segundos
     }
 
     fun enviarCoordenadas(){
@@ -411,15 +473,54 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
 
     }
 
+    fun aceptarViajePregunta()
+    { // Pregunta al conductor acepta el viaje
+        val alert = AlertView("Aceptar Viaje", "Desea aceptar el viaje?", AlertStyle.DIALOG)
+        alert.addAction(AlertAction("Si", AlertActionStyle.POSITIVE, { action ->
+            aceptarViaje(1)
+            tomandoDecision = false
+        }))
+        alert.addAction(AlertAction("No", AlertActionStyle.NEGATIVE, { action ->
+            crearAlerta("Viajes", "Viaje rechazado correctamente", R.color.red)
+            aceptarViaje(0)
+            tomandoDecision = false
+        }))
+        alert.show(this)
+    }
+    fun aceptarViaje(respuesta: Int)
+    { // Enviamos los parametros para aceptar viaje o eliminar conductor
+
+        var url = uri+"acciones/aceptarViaje.php?idViaje="+ idViajeActual+"&respuesta="+respuesta+"&idconductor="+idusuario
+        val jsonObjectRequest = JsonObjectRequest(url,null,
+            Response.Listener {response ->
+                // Finalizamos viaje
+                var dialog: ProgressDialog
+                if(respuesta == 0)
+                    dialog = ProgressDialog.show(this, "", "Cancelando Viaje...", true)  // Cartel de cargando
+                else
+                    dialog = ProgressDialog.show(this, "", "Enviando datos de viaje...", true) // Cartel de cargando
+                dialog.show()
+                if(response.getString("status") == "true"){
+                    dialog.dismiss()
+                    marcadorCliente.remove()
+                }else{
+                    crearAlerta("Viaje", "Este viaje ya fue cancelado automáticamente", R.color.red)
+                    dialog.dismiss()
+                }
+                verificarConductor() // Escondemos el LinearLayout con datos del viaje
+            },Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
     fun finalizarViaje_pre()
     { // Esta función se realiza pre funcion 'finalizarViaje' con el fin de indicar si el viaje se finalizó con éxito o hubo problemas
         val alert = AlertView("Viaje finalizado", "Seleccione una opción:", AlertStyle.DIALOG)
         alert.addAction(AlertAction("Finalizado", AlertActionStyle.DEFAULT, { action ->
             finalizarViaje("Exito")
         }))
-        alert.addAction(AlertAction("Cancelar viaje", AlertActionStyle.DEFAULT, { action ->
-            finalizarViaje("Cancelar")
-        }))
+        //alert.addAction(AlertAction("Cancelar viaje", AlertActionStyle.DEFAULT, { action ->
+        //    finalizarViaje("Cancelar")
+        //}))
         alert.addAction(AlertAction("Salir", AlertActionStyle.NEGATIVE, { action -> }))
         alert.show(this)
     }
@@ -438,14 +539,25 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 // Finalizamos viaje
-                if(response.getString("status") == "true")
+
+                var dialog: ProgressDialog
+                dialog = ProgressDialog.show(this, "", "Finalizando viaje...", true)  // Cartel de cargando
+                dialog.show()
+
+
+
+                if(response.getString("status") == "true"){
                     crearAlerta("Viaje Finalizado", "El viaje fue finalizado con éxito", R.color.green)
+                    dialog.dismiss()
+                    marcadorCliente.remove()
+                }
                 verificarConductor() // Escondemos el LinearLayout con datos del viaje
             },
             Response.ErrorListener { error -> error.printStackTrace() })
         queue.add(jsonObjectRequest)
 
-        enViaje =0 // Marcamos como auto disponible (muestra pasajeros para aceptar viajes)
+
+        enViaje =0 // Marcamos como auto disponible
         mMapC.clear() // Limpiamos el mapa
         startLocationUpdates() // Mostramos ubicación del conductor
         tv_viajesDisponibles.setText("Buscando pasajeros..") // seteamos el TextView `tv_viajesDisponibles`
@@ -471,10 +583,17 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
                 "idconductor="+ idusuario+
                 "&lat="+ conductor_Lat+
                 "&lon="+ conductor_Lon
+
+        var dialog: ProgressDialog
+        dialog = ProgressDialog.show(this, "", "Configurando viaje...", true)  // Cartel de cargando
+        dialog.show()
+
+
         val jsonObjectRequest = JsonObjectRequest(url,null,
             Response.Listener {response ->
                 if(response.getBoolean("estado"))
                 { // Si el viaje fue tomado con éxito
+                    dialog.dismiss()
                     verificarConductor()
                 }
                 else
