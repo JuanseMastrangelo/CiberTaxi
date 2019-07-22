@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.activity_maps.*
 
 class iniciar_sesion : AppCompatActivity() {
 
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "https://ferrule.space/WebServices/"
 
     // SharedPreferences
     val PREFS_FILENAME = "com.aplicacion.cibertaxi.prefs"

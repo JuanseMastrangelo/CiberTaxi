@@ -25,7 +25,7 @@ import kotlinx.android.synthetic.main.activity_chat.*
 
 class Chat : AppCompatActivity() {
 
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "https://ferrule.space/WebServices/"
 
     // WebService | Iniciamos el objeto
     lateinit var queue: RequestQueue

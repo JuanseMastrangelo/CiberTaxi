@@ -54,7 +54,7 @@ import org.json.JSONArray
 class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     GoogleMap.OnMarkerDragListener , GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "https://ferrule.space/WebServices/"
 
     // Google Maps | variables globales
     private lateinit var mMapC: GoogleMap
@@ -216,7 +216,7 @@ class vistaConductor : AppCompatActivity(), OnMapReadyCallback,
     fun activarAlarmaPanico()
     {
         if(manejoAgencia == false){ // Si la agencia no esta manejando los viajes
-            var url = uri+"acciones/alarmaPanico.php"
+            var url = uri+"acciones/alarmaPanico.php?idconductor="+idusuario
             val jsonObjectRequest = JsonObjectRequest(url,null,
                 Response.Listener { response ->
                     if(response.getBoolean("status")){// Verificamos que existen viajes disponibles

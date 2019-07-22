@@ -56,7 +56,7 @@ import android.app.TimePickerDialog;
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "https://ferrule.space/WebServices/"
 
     // Google Maps | variables globales
     private lateinit var mMap: GoogleMap
@@ -172,8 +172,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     fun pedirVehiculo(lat: Double, lon:Double, fecha: String)
     {// Funcion para pedir vehiculo
-
-        Toast.makeText(this, fecha, Toast.LENGTH_SHORT).show()
 
         var url = uri+"acciones/crearViaje.php?" +
                 "idusuario=" + idusuario +
@@ -433,6 +431,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             Response.ErrorListener { error -> error.printStackTrace() })
         queue.add(jsonObjectRequest)
     }
+
 
 
     fun abrirPublicidad(){

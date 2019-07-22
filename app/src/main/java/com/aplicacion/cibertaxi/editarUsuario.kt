@@ -16,7 +16,7 @@ import com.tapadoo.alerter.Alerter
 
 class editarUsuario : AppCompatActivity() {
 
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "https://ferrule.space/WebServices/"
 
     // WebService | Iniciamos el objeto
     lateinit var queue: RequestQueue

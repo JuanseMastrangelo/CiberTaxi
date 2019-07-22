@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.RatingBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -32,7 +33,7 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
     lateinit var destino: String
 
 
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "http://ferrule.space/WebServices/"
 
     // WebService | Iniciamos el objeto
     lateinit var queue: RequestQueue
@@ -41,6 +42,7 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
     val PREFS_FILENAME = "com.aplicacion.cibertaxi.prefs"
     var prefs: SharedPreferences? = null
     var idusuario = 0
+    var iddestino = ""
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         var userDto = items[position]
@@ -56,10 +58,10 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
         address(separador_destino[0].toDouble(), separador_destino[1].toDouble(), 1)
 
 
-        holder?.tv_historial_estado?.text = userDto.estado
+        //holder?.tv_historial_estado?.text = userDto.estado
         holder?.tv_historial_direccion?.text = origen +" hasta "+ destino
 
-
+        iddestino = userDto.conductor_usuario // Hacemos global al destino para añadir rating
         if(userDto.tipo == "usuario")
         {
             holder?.tv_historial_usuario?.text = "id Conductor: "+ userDto.conductor_usuario
@@ -81,6 +83,12 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
 
             holder?.btn_nuevoViajeOrigen?.visibility = View.GONE
             holder?.btn_nuevoViajeDestino?.visibility = View.GONE
+        }
+        holder?.rb_historial?.rating = userDto.rating.toFloat()
+        holder?.rb_historial?.setOnRatingBarChangeListener { _, rating, _ ->
+            // Cuando se cambia una reputacion
+            reputacion(rating)
+
         }
 
 
@@ -107,6 +115,18 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
                 Toast.makeText(context, "Se pidió un vehículo", Toast.LENGTH_SHORT).show()
             },
             Response.ErrorListener { error -> error.printStackTrace() })
+        queue.add(jsonObjectRequest)
+    }
+
+
+    fun reputacion(rating: Float)
+    { // Funcion para puntuar al cliente o al conductor
+
+        var url = uri+"acciones/reputacion.php?" +
+                "idorigen=" + idusuario +
+                "&iddestino="+iddestino+
+                "&rating="+rating
+        val jsonObjectRequest = JsonObjectRequest(url,null,Response.Listener {response ->},Response.ErrorListener { error -> error.printStackTrace() })
         queue.add(jsonObjectRequest)
     }
 
@@ -140,6 +160,8 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
         var tv_historial_usuario: TextView? = null
         var tv_historial_estado: TextView? = null
 
+        var rb_historial: RatingBar? = null
+
 
         var btn_nuevoViajeOrigen: Button? = null
         var btn_nuevoViajeDestino: Button? = null
@@ -152,6 +174,8 @@ class Adaptador(private var items: ArrayList<Historial>, private var context: Co
 
             this.btn_nuevoViajeOrigen = row?.findViewById(R.id.btn_nuevoViajeOrigen)
             this.btn_nuevoViajeDestino = row?.findViewById(R.id.btn_nuevoViajeDestino)
+
+            this.rb_historial = row?.findViewById(R.id.rb_historial);
 
 
         }

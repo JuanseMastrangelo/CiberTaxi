@@ -54,11 +54,12 @@
     />
 
     <RatingBar
+            android:id="@+id/rb_historial"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:numStars="5"
-            android:rating="1"
+            android:rating="0"
             android:stepSize="1"
             android:progressBackgroundTint="@color/grey"
             android:backgroundTint="@color/colorPrimary"

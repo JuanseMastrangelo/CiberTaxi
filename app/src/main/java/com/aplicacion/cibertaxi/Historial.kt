@@ -19,9 +19,11 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.aplicacion.cibertaxi.historialAdapter.Adaptador
 import com.aplicacion.cibertaxi.historialAdapter.Historial
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 
 class Historial : AppCompatActivity() {
-    val uri = "http://eleccionesargentina.online/WebServices/"
+    val uri = "https://ferrule.space/WebServices/"
 
     // WebService | Iniciamos el objeto
     lateinit var queue: RequestQueue
@@ -85,12 +87,13 @@ class Historial : AppCompatActivity() {
                     while (i < json.length()){ // Este algoritmo crea un while con el tamaño del json que traemos de la base de datos
                         var separador = json[i].toString().split("|") // Separamos el json por `|` y creamos un array para manejarlos
                         var dataHistorial = Historial(
-                            separador[0],
-                            separador[1],
-                            separador[2],
-                            separador[3],
-                            separador[4],
-                            separador[5]
+                            separador[0], // Puesto
+                            separador[1], // Id usuario
+                            separador[2], // pos inicial (lat|lon)
+                            separador[3], // pos final (lat|lon)
+                            separador[4], // fecha de comienzo
+                            separador[5], // estado del viaje
+                            separador[6] // rating
                         ) // Creamos el objeto
                         resultados_array.add(dataHistorial) // Lo insertamos en el array
 
@@ -106,9 +109,15 @@ class Historial : AppCompatActivity() {
                     rv_historial?.scrollToPosition(0)
                     pb_historial.visibility = View.GONE
 
+                }else{
+                    pb_historial.visibility = View.GONE
+                    Toast.makeText(this, "El historial está vacio", Toast.LENGTH_SHORT).show()
                 }
             },
             Response.ErrorListener { error -> error.printStackTrace() })
         queue.add(jsonObjectRequest)
     }
+
+
+
 }
